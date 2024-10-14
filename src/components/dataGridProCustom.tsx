@@ -85,14 +85,14 @@ const DataGridProCustom: React.FC = () => {
   const fetchData = (
     page: number,
     pageSize: number,
-    sortModel: GridSortModel
+    sortModel: GridSortModel,
   ) => {
     const sortQuery = sortModel
       .map(({ field, sort }) => `&sortField=${field}&sortDirection=${sort}`)
       .join("");
 
     fetch(
-      `https://rickandmortyapi.com/api/character?page=${page + 1}&limit=${pageSize}${sortQuery}`
+      `https://rickandmortyapi.com/api/character?page=${page + 1}&limit=${pageSize}${sortQuery}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -104,7 +104,7 @@ const DataGridProCustom: React.FC = () => {
             species: character.species,
             gender: character.gender,
             episode: character.episode,
-          })
+          }),
         );
         dispatch({
           type: "SET_ROWS",
@@ -120,7 +120,7 @@ const DataGridProCustom: React.FC = () => {
     fetchData(
       state.paginationModel.page,
       state.paginationModel.pageSize,
-      state.sortModel
+      state.sortModel,
     );
   }, [state.paginationModel, state.sortModel]);
 
@@ -192,7 +192,7 @@ const DataGridProCustom: React.FC = () => {
               </IconButton>
               <Pagination
                 count={Math.ceil(
-                  state.rowCount / state.paginationModel.pageSize
+                  state.rowCount / state.paginationModel.pageSize,
                 )}
                 page={state.paginationModel.page + 1}
                 onChange={(_, page) =>
@@ -214,7 +214,7 @@ const DataGridProCustom: React.FC = () => {
                     ...state.paginationModel,
                     page:
                       Math.ceil(
-                        state.rowCount / state.paginationModel.pageSize
+                        state.rowCount / state.paginationModel.pageSize,
                       ) - 1,
                   })
                 }

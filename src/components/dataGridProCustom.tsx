@@ -27,18 +27,21 @@ interface State {
   paginationModel: GridPaginationModel;
   rowCount: number;
   sortModel: GridSortModel;
+  groupModel: string[];
 }
 
 type Action =
   | { type: "SET_ROWS"; payload: { rows: RowData[]; rowCount: number } }
   | { type: "SET_PAGINATION"; payload: GridPaginationModel }
-  | { type: "SET_SORT"; payload: GridSortModel };
+  | { type: "SET_SORT"; payload: GridSortModel }
+  | { type: "SET_GROUP_MODEL"; payload: string[] };
 
 const initialState: State = {
   rows: [],
   paginationModel: { page: 0, pageSize: 20 },
   rowCount: 0,
   sortModel: [],
+  groupModel: [],
 };
 
 function reducer(state: State, action: Action): State {
@@ -53,6 +56,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, paginationModel: action.payload };
     case "SET_SORT":
       return { ...state, sortModel: action.payload };
+    case "SET_GROUP_MODEL":
+      return { ...state, groupModel: action.payload };
     default:
       return state;
   }
@@ -86,13 +91,18 @@ const DataGridProCustom: React.FC = () => {
     page: number,
     pageSize: number,
     sortModel: GridSortModel,
+    groupModel: string[],
   ) => {
     const sortQuery = sortModel
       .map(({ field, sort }) => `&sortField=${field}&sortDirection=${sort}`)
       .join("");
 
+    const groupQuery = groupModel.length
+      ? `&groupBy=${groupModel.join(",")}`
+      : "";
+
     fetch(
-      `https://rickandmortyapi.com/api/character?page=${page + 1}&limit=${pageSize}${sortQuery}`,
+      `https://rickandmortyapi.com/api/character?page=${page + 1}&limit=${pageSize}${sortQuery}${groupQuery}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -121,8 +131,9 @@ const DataGridProCustom: React.FC = () => {
       state.paginationModel.page,
       state.paginationModel.pageSize,
       state.sortModel,
+      state.groupModel,
     );
-  }, [state.paginationModel, state.sortModel]);
+  }, [state.paginationModel, state.sortModel, state.groupModel]);
 
   const handleSortChange = (newSortModel: GridSortModel) => {
     dispatch({ type: "SET_SORT", payload: newSortModel });
@@ -130,6 +141,10 @@ const DataGridProCustom: React.FC = () => {
 
   const handlePaginationChange = (newPaginationModel: GridPaginationModel) => {
     dispatch({ type: "SET_PAGINATION", payload: newPaginationModel });
+  };
+
+  const handleGroupModelChange = (newGroupModel: string[]) => {
+    dispatch({ type: "SET_GROUP_MODEL", payload: newGroupModel });
   };
 
   const handleNavigateToSwapi = () => {
@@ -166,8 +181,10 @@ const DataGridProCustom: React.FC = () => {
         paginationModel={state.paginationModel}
         onPaginationModelChange={handlePaginationChange}
         onSortModelChange={handleSortChange}
+        onRowGroupingModelChange={handleGroupModelChange}
         rowCount={state.rowCount}
         paginationMode="server"
+        rowGroupingColumnMode="multiple"
         slots={{
           toolbar: () => <CustomToolbar rowCount={state.rowCount} />,
           footer: () => (

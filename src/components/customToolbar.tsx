@@ -1,8 +1,6 @@
 import React from "react";
-import {
-  useGridApiContext,
-  GridPreferencePanelsValue,
-} from "@mui/x-data-grid-premium";
+import { GridPreferencePanelsValue } from "@mui/x-data-grid";
+import { useGridApiContext } from "../x-data-grid-premium/hooks/utils/useGridApiContext";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 interface CustomToolbarProps {

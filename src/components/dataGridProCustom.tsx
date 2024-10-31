@@ -1,11 +1,11 @@
 import React, { useReducer, useEffect } from "react";
 import {
-  DataGridPremium,
   GridColDef,
   GridPaginationModel,
   GridSortModel,
   GridRowParams,
-} from "@mui/x-data-grid-premium";
+} from "@mui/x-data-grid";
+import { DataGridPremium } from "../x-data-grid-premium/DataGridPremium/DataGridPremium";
 import {
   IconButton,
   Box,

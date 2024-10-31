@@ -1,9 +1,6 @@
 import React, { useReducer, useEffect } from "react";
-import {
-  DataGridPremium,
-  GridColDef,
-  GridPaginationModel,
-} from "@mui/x-data-grid-premium";
+import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
+import { DataGridPremium } from "../x-data-grid-premium/DataGridPremium/DataGridPremium";
 import {
   IconButton,
   Box,
@@ -79,13 +76,13 @@ const DataGridCustomTree: React.FC = () => {
   const fetchData = () => {
     Promise.allSettled([
       fetch(`https://jsonplaceholder.typicode.com/users`).then((response) =>
-        response.json(),
+        response.json()
       ),
       fetch(`https://jsonplaceholder.typicode.com/posts`).then((response) =>
-        response.json(),
+        response.json()
       ),
       fetch(`https://jsonplaceholder.typicode.com/comments`).then((response) =>
-        response.json(),
+        response.json()
       ),
     ])
       .then((results) => {
@@ -145,7 +142,7 @@ const DataGridCustomTree: React.FC = () => {
                       comments.length > 0
                         ? comments
                             .filter(
-                              (comment: Comment) => comment.postId === post.id,
+                              (comment: Comment) => comment.postId === post.id
                             )
                             .map((comment: Comment) => ({
                               id: `comment-${comment.id}`,
@@ -246,7 +243,7 @@ const DataGridCustomTree: React.FC = () => {
               </IconButton>
               <Pagination
                 count={Math.ceil(
-                  state.rows.length / state.paginationModel.pageSize,
+                  state.rows.length / state.paginationModel.pageSize
                 )}
                 page={state.paginationModel.page + 1}
                 onChange={(_, page) =>
@@ -262,14 +259,14 @@ const DataGridCustomTree: React.FC = () => {
                     ...state.paginationModel,
                     page:
                       Math.ceil(
-                        state.rows.length / state.paginationModel.pageSize,
+                        state.rows.length / state.paginationModel.pageSize
                       ) - 1,
                   })
                 }
                 disabled={
                   state.paginationModel.page ===
                   Math.ceil(
-                    state.rows.length / state.paginationModel.pageSize,
+                    state.rows.length / state.paginationModel.pageSize
                   ) -
                     1
                 }

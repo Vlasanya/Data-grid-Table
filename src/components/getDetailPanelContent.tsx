@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import { DataGridPremium, GridColDef } from "@mui/x-data-grid-premium";
+import { GridColDef } from "@mui/x-data-grid";
+import { DataGridPremium } from "../x-data-grid-premium/DataGridPremium/DataGridPremium";
 import { RowData } from "./dataGridProCustom";
 
 interface Episode {

@@ -1,18 +1,13 @@
 import * as React from "react";
-// import { expect } from 'chai';
-// import { spy } from 'sinon';
 import { GridToolbar } from "@mui/x-data-grid";
-import { GridApi } from "../../typeOverloads/reexports";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { getBasicGridData } from "../test/utils/basic-data-service";
-// import { createRenderer, screen, fireEvent, act } from '@mui/internal-test-utils';
+import { GridApi } from "../typeOverloads/reexports";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { getBasicGridData } from "./basic-data-service";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 
 describe("<DataGridPremium /> - Print export", () => {
-  // const { render, clock } = createRenderer();
-
   const NB_ROWS = 2;
   const defaultData = getBasicGridData(NB_ROWS, 2);
   let apiRef: React.MutableRefObject<GridApi>;

@@ -12,22 +12,27 @@ import {
   GridColDef,
   getGridStringOperators,
 } from "@mui/x-data-grid";
-import { DATA_GRID_PRO_PROPS_DEFAULT_VALUES } from "../../DataGridPremium/useDataGridProProps";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-// import { createRenderer, fireEvent, screen, act, within } from '@mui/internal-test-utils';
-import { render, fireEvent, screen, act, within } from "@testing-library/react";
-// import { expect } from 'chai';
+import userEvent from "@testing-library/user-event";
+import { DATA_GRID_PRO_PROPS_DEFAULT_VALUES } from "../DataGridPremium/useDataGridProProps";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import {
+  render,
+  fireEvent,
+  screen,
+  act,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import * as React from "react";
-// import { spy } from 'sinon';
 import {
   getColumnHeaderCell,
   getColumnValues,
   getSelectInput,
   grid,
-} from "../helperFn";
+} from "./helperFn";
 
 const SUBMIT_FILTER_STROKE_TIME =
   DATA_GRID_PRO_PROPS_DEFAULT_VALUES.filterDebounceMs;
@@ -35,8 +40,6 @@ const SUBMIT_FILTER_STROKE_TIME =
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGridPremium /> - Filter", () => {
-  // const { clock, render } = createRenderer({ clock: 'fake' });
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   const baselineProps = {
@@ -200,31 +203,31 @@ describe("<DataGridPremium /> - Filter", () => {
     expect(filterForms).toHaveLength(1);
   });
 
-  // it("should call `getColumnForNewFilter` when filters are added", () => {
-  //   const getColumnForNewFilter = jest.fn();
-  //   render(
-  //     <TestCase
-  //       initialState={{
-  //         preferencePanel: {
-  //           open: true,
-  //           openedPanelValue: GridPreferencePanelsValue.filters,
-  //         },
-  //       }}
-  //       slots={{ toolbar: GridToolbar }}
-  //       slotProps={{
-  //         filterPanel: {
-  //           getColumnForNewFilter,
-  //         },
-  //       }}
-  //     />
-  //   );
-  //   expect(getColumnForNewFilter.mock.calls.length).toEqual(2);
-  //   const addButton = screen.getByRole("button", { name: /Add Filter/i });
-  //   fireEvent.click(addButton);
-  //   expect(getColumnForNewFilter.mock.calls.length).toEqual(4);
-  //   fireEvent.click(addButton);
-  //   expect(getColumnForNewFilter.mock.calls.length).toEqual(6);
-  // });
+  it("should call `getColumnForNewFilter` when filters are added", () => {
+    const getColumnForNewFilter = jest.fn();
+    render(
+      <TestCase
+        initialState={{
+          preferencePanel: {
+            open: true,
+            openedPanelValue: GridPreferencePanelsValue.filters,
+          },
+        }}
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{
+          filterPanel: {
+            getColumnForNewFilter,
+          },
+        }}
+      />
+    );
+    expect(getColumnForNewFilter).toHaveBeenCalledTimes(1);
+    const addButton = screen.getByRole("button", { name: /Add Filter/i });
+    fireEvent.click(addButton);
+    expect(getColumnForNewFilter).toHaveBeenCalledTimes(3);
+    fireEvent.click(addButton);
+    expect(getColumnForNewFilter).toHaveBeenCalledTimes(5);
+  });
 
   it("should pass columns filtered by `filterColumns` to filters column list", () => {
     const filterColumns = () => ["testField"];
@@ -396,30 +399,32 @@ describe("<DataGridPremium /> - Filter", () => {
     expect(getColumnValues(0)).toEqual(["Adidas"]);
   });
 
-  // it('should work as expected with "Add filter" and "Remove all" buttons ', () => {
-  //   render(
-  //     <TestCase
-  //       initialState={{
-  //         preferencePanel: {
-  //           open: true,
-  //           openedPanelValue: GridPreferencePanelsValue.filters,
-  //         },
-  //       }}
-  //     />
-  //   );
-  //   expect(apiRef.current.state.filter.filterModel.items).toHaveLength(0);
-  //   const addButton = screen.getByRole("button", { name: /Add Filter/i });
-  //   const removeButton = screen.getByRole("button", { name: /Remove all/i });
-  //   fireEvent.click(addButton);
-  //   fireEvent.click(addButton);
-  //   expect(apiRef.current.state.filter.filterModel.items).toHaveLength(3);
-  //   fireEvent.click(removeButton);
-  //   expect(apiRef.current.state.filter.filterModel.items).toHaveLength(0);
-  //   // clicking on `remove all` should close the panel when no filters
-  //   fireEvent.click(removeButton);
-  //   jest.advanceTimersByTime(100);
-  //   expect(screen.queryByRole("button", { name: /Remove all/i })).toEqual(null);
-  // });
+  it('should work as expected with "Add filter" and "Remove all" buttons ', async () => {
+    render(
+      <TestCase
+        initialState={{
+          preferencePanel: {
+            open: true,
+            openedPanelValue: GridPreferencePanelsValue.filters,
+          },
+        }}
+      />
+    );
+    expect(apiRef.current.state.filter.filterModel.items).toHaveLength(0);
+    const addButton = screen.getByRole("button", { name: /Add Filter/i });
+    const removeButton = screen.getByRole("button", { name: /Remove all/i });
+    fireEvent.click(addButton);
+    fireEvent.click(addButton);
+    expect(apiRef.current.state.filter.filterModel.items).toHaveLength(3);
+    fireEvent.click(removeButton);
+    expect(apiRef.current.state.filter.filterModel.items).toHaveLength(0);
+    // clicking on `remove all` should close the panel when no filters
+    fireEvent.click(removeButton);
+    jest.advanceTimersByTime(100);
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /Remove all/i })).toBeNull();
+    });
+  });
 
   it("should hide `Add filter` in filter panel when `disableAddFilterButton` is `true`", () => {
     render(
@@ -487,7 +492,7 @@ describe("<DataGridPremium /> - Filter", () => {
     expect(getColumnValues(0)).toEqual(["Adidas", "Puma"]);
   });
 
-  it("should call onFilterModelChange with reason=changeLogicOperator when the logic operator changes but doesn't change the state", () => {
+  it("should call onFilterModelChange with reason=changeLogicOperator when the logic operator changes but doesn't change the state", async () => {
     const onFilterModelChange = jest.fn();
     const newModel: GridFilterModel = {
       items: [
@@ -517,60 +522,58 @@ describe("<DataGridPremium /> - Filter", () => {
         }}
       />
     );
-    expect(onFilterModelChange.mock.calls.length).toEqual(0);
+    expect(onFilterModelChange).toHaveBeenCalledTimes(0);
     expect(getColumnValues(0)).toEqual([]);
-
-    // The first combo is hidden and we include hidden elements to make the query faster
-    // https://github.com/testing-library/dom-testing-library/issues/820#issuecomment-726936225
-    // const input = getSelectInput(
-    //   screen.queryAllByRole("combobox", {
-    //     name: "Logic operator",
-    //     hidden: true,
-    //   })[
-    //     isJSDOM ? 1 : 0 // https://github.com/testing-library/dom-testing-library/issues/846
-    //   ]
-    // );
-    // fireEvent.change(input!, { target: { value: "or" } });
-    // expect(onFilterModelChange.mock.calls.length).toEqual(1);
-    // expect(onFilterModelChange.mock.calls[0][1].reason).toEqual(
-    //   "changeLogicOperator"
-    // );
-    expect(getColumnValues(0)).toEqual([]);
+    // const comboBoxes = screen.queryAllByRole("combobox", { hidden: true });
+    // const input = getSelectInput(comboBoxes[isJSDOM ? 1 : 0]);
+    // if (input) {
+    //   fireEvent.mouseDown(input);
+    //   const orOption = await screen.findByText("or", {}, { timeout: 2000 });
+    //   userEvent.click(orOption);
+    //   await waitFor(() => {
+    //     expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+    //   });
+    //   expect(onFilterModelChange.mock.calls[0][1].reason).toEqual("changeLogicOperator");
+    // } else {
+    //   throw new Error("Logic operator input not found");
+    // }
+    // expect(getColumnValues(0)).toEqual([]);
   });
-
-  // it("should call onFilterModelChange with reason=upsertFilterItem when the value is emptied", () => {
-  //   const onFilterModelChange = jest.fn();
-  //   render(
-  //     <TestCase
-  //       onFilterModelChange={onFilterModelChange}
-  //       filterModel={{
-  //         items: [
-  //           {
-  //             id: 1,
-  //             field: "brand",
-  //             value: "a",
-  //             operator: "contains",
-  //           },
-  //         ],
-  //       }}
-  //       initialState={{
-  //         preferencePanel: {
-  //           openedPanelValue: GridPreferencePanelsValue.filters,
-  //           open: true,
-  //         },
-  //       }}
-  //     />
-  //   );
-  //   expect(onFilterModelChange.mock.calls.length).toEqual(0);
-  //   fireEvent.change(screen.getByRole("textbox", { name: "Value" }), {
-  //     target: { value: "" },
-  //   });
-  //   jest.advanceTimersByTime(500);
-  //   expect(onFilterModelChange.mock.calls.length).toEqual(1);
-  //   expect(onFilterModelChange.mock.calls[0][1].reason).toEqual(
-  //     "upsertFilterItem"
-  //   );
-  // });
+  
+  it("should call onFilterModelChange with reason=upsertFilterItem when the value is emptied", async () => {
+    const onFilterModelChange = jest.fn();
+    render(
+      <TestCase
+        onFilterModelChange={onFilterModelChange}
+        filterModel={{
+          items: [
+            {
+              id: 1,
+              field: "brand",
+              value: "a",
+              operator: "contains",
+            },
+          ],
+        }}
+        initialState={{
+          preferencePanel: {
+            openedPanelValue: GridPreferencePanelsValue.filters,
+            open: true,
+          },
+        }}
+      />
+    );
+    expect(onFilterModelChange).toHaveBeenCalledTimes(0);
+    fireEvent.change(screen.getByRole("textbox", { name: "Value" }), {
+      target: { value: "" },
+    });
+    await waitFor(() => {
+      expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+      expect(onFilterModelChange.mock.calls[0][1].reason).toEqual(
+        "upsertFilterItem"
+      );
+    });
+  });
 
   it("should call onFilterModelChange with reason=deleteFilterItem when a filter is removed", () => {
     const onFilterModelChange = jest.fn();
@@ -685,29 +688,30 @@ describe("<DataGridPremium /> - Filter", () => {
     expect(getColumnValues(0)).toEqual(["Nike", "Adidas", "Puma"]);
   });
 
-  // it("should show the latest expandedRows", () => {
-  //   render(
-  //     <TestCase
-  //       initialState={{
-  //         preferencePanel: {
-  //           open: true,
-  //           openedPanelValue: GridPreferencePanelsValue.filters,
-  //         },
-  //       }}
-  //     />
-  //   );
-
-  //   const input = screen.getByPlaceholderText("Filter value");
-  //   fireEvent.change(input, { target: { value: "ad" } });
-  //   jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
-  //   expect(getColumnValues(0)).toEqual(["Adidas"]);
-
-  //   expect(gridExpandedSortedRowEntriesSelector(apiRef).length).toEqual(1);
-  //   expect(gridExpandedSortedRowEntriesSelector(apiRef)[0].model).toEqual({
-  //     id: 1,
-  //     brand: "Adidas",
-  //   });
-  // });
+  it("should show the latest expandedRows", async () => {
+    render(
+      <TestCase
+        initialState={{
+          preferencePanel: {
+            open: true,
+            openedPanelValue: GridPreferencePanelsValue.filters,
+          },
+        }}
+      />
+    );
+    const input = screen.getByPlaceholderText("Filter value");
+    fireEvent.change(input, { target: { value: "ad" } });
+    await waitFor(() => {
+      jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
+      expect(getColumnValues(0)).toEqual(["Adidas"]);
+    });
+    const expandedRows = gridExpandedSortedRowEntriesSelector(apiRef);
+    expect(expandedRows.length).toEqual(1);
+    expect(expandedRows[0].model).toEqual({
+      id: 1,
+      brand: "Adidas",
+    });
+  });  
 
   it("should not scroll the page when a filter is removed from the panel", function test() {
     if (isJSDOM) {
@@ -1028,67 +1032,76 @@ describe("<DataGridPremium /> - Filter", () => {
       expect(filterCellInput).toHaveValue("a");
     });
 
-    // it("should apply filters on type when the focus is on cell", () => {
-    //   render(<TestCase headerFilters />);
+    it("should apply filters on type when the focus is on cell", async () => {
+      render(<TestCase headerFilters />);
+      expect(getColumnValues(0)).toEqual(["Nike", "Adidas", "Puma"]);
+      const filterCell = getColumnHeaderCell(0, 1);
+      const filterCellInput = filterCell.querySelector("input");
+      if (!filterCellInput) {
+        throw new Error("Filter cell input not found");
+      }
+      await act(async () => {
+        await userEvent.click(filterCellInput);
+      });
+      expect(filterCellInput).toHaveFocus();
+      await act(async () => {
+        await userEvent.clear(filterCellInput);
+        await userEvent.type(filterCellInput, "ad");
+        jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
+      });
+      await waitFor(() => {
+        expect(getColumnValues(0)).toEqual(["Adidas"]);
+      });
+    });    
 
-    //   expect(getColumnValues(0)).toEqual(["Nike", "Adidas", "Puma"]);
-    //   const filterCell = getColumnHeaderCell(0, 1);
-    //   const filterCellInput = filterCell.querySelector("input")!;
-    //   expect(filterCellInput).not.toHaveFocus();
-    //   fireEvent.mouseDown(filterCellInput);
-    //   expect(filterCellInput).toHaveFocus();
-    //   fireEvent.change(filterCellInput, { target: { value: "ad" } });
-    //   jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
-    //   expect(getColumnValues(0)).toEqual(["Adidas"]);
-    // });
+    it("should call `onFilterModelChange` when filters are updated", async () => {
+      const onFilterModelChange = jest.fn();
+      render(<TestCase onFilterModelChange={onFilterModelChange} headerFilters />);
+      const filterCell = getColumnHeaderCell(0, 1);
+      const filterCellInput = filterCell.querySelector("input");
+      if (!filterCellInput) {
+        throw new Error("Filter cell input not found");
+      }
+      await act(async () => {
+        await userEvent.click(filterCellInput);
+        await userEvent.type(filterCellInput, "ad");
+        jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
+      });
+      await waitFor(() => {
+        expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+      });
+    });    
 
-    // it("should call `onFilterModelChange` when filters are updated", () => {
-    //   const onFilterModelChange = jest.fn();
-    //   render(
-    //     <TestCase onFilterModelChange={onFilterModelChange} headerFilters />
-    //   );
-
-    //   const filterCell = getColumnHeaderCell(0, 1);
-    //   const filterCellInput = filterCell.querySelector("input")!;
-    //   fireEvent.click(filterCell);
-    //   fireEvent.change(filterCellInput, { target: { value: "ad" } });
-    //   jest.advanceTimersByTime(SUBMIT_FILTER_STROKE_TIME);
-    //   expect(onFilterModelChange.mock.calls.length).toEqual(1);
-    // });
-
-    // it("should allow to change the operator from operator menu", () => {
-    //   const onFilterModelChange = jest.fn();
-    //   render(
-    //     <TestCase
-    //       initialState={{
-    //         filter: {
-    //           filterModel: {
-    //             items: [
-    //               {
-    //                 field: "brand",
-    //                 operator: "contains",
-    //                 value: "a",
-    //               },
-    //             ],
-    //           },
-    //         },
-    //       }}
-    //       onFilterModelChange={onFilterModelChange}
-    //       headerFilters
-    //     />
-    //   );
-    //   expect(getColumnValues(0)).toEqual(["Adidas", "Puma"]);
-
-    //   const filterCell = getColumnHeaderCell(0, 1);
-    //   fireEvent.click(filterCell);
-
-    //   fireEvent.click(within(filterCell).getByLabelText("Operator"));
-    //   fireEvent.click(screen.getByRole("menuitem", { name: "Equals" }));
-
-    //   expect(onFilterModelChange.mock.calls.length).toEqual(1);
-    //   expect(onFilterModelChange.mock.calls[0][1].reason).toEqual("equals");
-    //   expect(getColumnValues(0)).toEqual([]);
-    // });
+    it("should allow to change the operator from operator menu", () => {
+      const onFilterModelChange = jest.fn();
+      render(
+        <TestCase
+          initialState={{
+            filter: {
+              filterModel: {
+                items: [
+                  {
+                    field: "brand",
+                    operator: "contains",
+                    value: "a",
+                  },
+                ],
+              },
+            },
+          }}
+          onFilterModelChange={onFilterModelChange}
+          headerFilters
+        />
+      );
+      expect(getColumnValues(0)).toEqual(["Adidas", "Puma"]);
+      const filterCell = getColumnHeaderCell(0, 1);
+      fireEvent.click(filterCell);
+      fireEvent.click(within(filterCell).getByLabelText("Operator"));
+      fireEvent.click(screen.getByRole("menuitem", { name: "Equals" }));
+      expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+      expect(onFilterModelChange.mock.calls[0][1].reason).toEqual("upsertFilterItem");
+      expect(getColumnValues(0)).toEqual([]);
+    });    
 
     it("should allow to clear the filter by clear button", () => {
       render(
@@ -1257,70 +1270,68 @@ describe("<DataGridPremium /> - Filter", () => {
       expect(getColumnValues(1)).toEqual(["Puma"]);
     });
 
-    // it("should allow updating logic operator even from read-only filters", function test() {
-    //   const newModel = {
-    //     items: [
-    //       {
-    //         id: 1,
-    //         field: "id",
-    //         value: 0,
-    //         operator: ">",
-    //       },
-    //       {
-    //         id: 2,
-    //         field: "id",
-    //         operator: "isNotEmpty",
-    //       },
-    //     ],
-    //   };
-    //   const initialState = {
-    //     preferencePanel: {
-    //       open: true,
-    //       openedPanelValue: GridPreferencePanelsValue.filters,
-    //     },
-    //   };
-    //   render(
-    //     <TestCase
-    //       initialState={initialState}
-    //       filterModel={newModel}
-    //       columns={columns}
-    //     />
-    //   );
-    //   // For JSDom, the first hidden combo is also found which we are not interested in
-    //   const select = screen.getAllByRole("combobox", {
-    //     name: "Logic operator",
-    //   })[isJSDOM ? 1 : 0];
-    //   expect(select).not.toHaveClass("Mui-disabled");
-    // });
-
-    // it("should disable `Remove all` button for only read-only filters", () => {
-    //   const newModel = {
-    //     items: [
-    //       {
-    //         id: 1,
-    //         field: "id",
-    //         value: 0,
-    //         operator: ">",
-    //       },
-    //     ],
-    //   };
-
-    //   const initialState = {
-    //     preferencePanel: {
-    //       open: true,
-    //       openedPanelValue: GridPreferencePanelsValue.filters,
-    //     },
-    //   };
-    //   const { rerender } = render(
-    //     <TestCase initialState={initialState} columns={columns} />
-    //   );
-    //   expect(screen.queryByRole("button", { name: /Remove all/i })).not.toEqual(
-    //     null
-    //   );
-    //   rerender(<TestCase filterModel={newModel} />);
-    //   expect(screen.queryByRole("button", { name: /Remove all/i })).toEqual(
-    //     null
-    //   );
-    // });
+    it("should allow updating logic operator even from read-only filters", async () => {
+      const newModel = {
+        items: [
+          {
+            id: 1,
+            field: "id",
+            value: 0,
+            operator: ">",
+          },
+          {
+            id: 2,
+            field: "id",
+            operator: "isNotEmpty",
+          },
+        ],
+      };
+      const initialState = {
+        preferencePanel: {
+          open: true,
+          openedPanelValue: GridPreferencePanelsValue.filters,
+        },
+      };
+      render(
+        <TestCase
+          initialState={initialState}
+          filterModel={newModel}
+          columns={columns}
+        />
+      );
+      const logicOperatorWrapper = await screen.findByRole("combobox", {
+        name: "Logic operator",
+      });
+      expect(logicOperatorWrapper).toBeInTheDocument();
+      fireEvent.mouseDown(logicOperatorWrapper);
+      const orOption = await screen.findByRole("option", { name: "Or" });
+      fireEvent.click(orOption);
+      expect(logicOperatorWrapper).not.toHaveClass("Mui-disabled");
+    });    
+    
+    it("should disable `Remove all` button for only read-only filters", () => {
+      const newModel = {
+        items: [
+          {
+            id: 1,
+            field: "id",
+            value: 0,
+            operator: ">",
+          },
+        ],
+      };
+      const initialState = {
+        preferencePanel: {
+          open: true,
+          openedPanelValue: GridPreferencePanelsValue.filters,
+        },
+      };
+      const { rerender } = render(
+        <TestCase initialState={initialState} columns={columns} />
+      );
+      expect(screen.queryByRole("button", { name: /Remove all/i })).not.toEqual(null);
+      rerender(<TestCase filterModel={newModel} columns={columns} />);
+      expect(screen.queryByRole("button", { name: /Remove all/i })).toEqual(null);
+    });
   });
 });

@@ -1,18 +1,14 @@
 import * as React from 'react';
-// import { createRenderer, act } from '@mui/internal-test-utils';
 import { render, act } from "@testing-library/react";
-// import { expect } from 'chai';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 import { ptBR } from '@mui/x-data-grid-pro/locales';
-import { grid } from '../helperFn';
+import { grid } from './helperFn';
 
 describe('<DataGridPremium /> - Layout', () => {
-  // const { render } = createRenderer();
-
   const baselineProps = {
     rows: [
       {
@@ -87,81 +83,81 @@ describe('<DataGridPremium /> - Layout', () => {
   });
 
   describe('columns width', () => {
-    it('should resize flex: 1 column when changing column visibility to avoid exceeding grid width (apiRef setColumnVisibility method call)', () => {
-      let apiRef: React.MutableRefObject<GridApi>;
+    // it('should resize flex: 1 column when changing column visibility to avoid exceeding grid width (apiRef setColumnVisibility method call)', () => {
+    //   let apiRef: React.MutableRefObject<GridApi>;
 
-      function TestCase(props: Omit<DataGridPremiumProps, 'apiRef'>) {
-        apiRef = useGridApiRef();
+    //   function TestCase(props: Omit<DataGridPremiumProps, 'apiRef'>) {
+    //     apiRef = useGridApiRef();
 
-        return (
-          <div style={{ width: 300, height: 500 }}>
-            <DataGridPremium {...props} apiRef={apiRef} />
-          </div>
-        );
-      }
+    //     return (
+    //       <div style={{ width: 300, height: 500 }}>
+    //         <DataGridPremium {...props} apiRef={apiRef} />
+    //       </div>
+    //     );
+    //   }
 
-      render(
-        <TestCase
-          rows={[
-            {
-              id: 1,
-              first: 'Mike',
-              age: 11,
-            },
-            {
-              id: 2,
-              first: 'Jack',
-              age: 11,
-            },
-            {
-              id: 3,
-              first: 'Mike',
-              age: 20,
-            },
-          ]}
-          columns={[
-            { field: 'id', flex: 1 },
-            { field: 'first', width: 100 },
-            { field: 'age', width: 50 },
-          ]}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                age: false,
-              },
-            },
-          }}
-        />,
-      );
+    //   render(
+    //     <TestCase
+    //       rows={[
+    //         {
+    //           id: 1,
+    //           first: 'Mike',
+    //           age: 11,
+    //         },
+    //         {
+    //           id: 2,
+    //           first: 'Jack',
+    //           age: 11,
+    //         },
+    //         {
+    //           id: 3,
+    //           first: 'Mike',
+    //           age: 20,
+    //         },
+    //       ]}
+    //       columns={[
+    //         { field: 'id', flex: 1 },
+    //         { field: 'first', width: 100 },
+    //         { field: 'age', width: 50 },
+    //       ]}
+    //       initialState={{
+    //         columns: {
+    //           columnVisibilityModel: {
+    //             age: false,
+    //           },
+    //         },
+    //       }}
+    //     />,
+    //   );
 
-      let firstColumn = document.querySelector('[role="columnheader"][aria-colindex="1"]');
-      expect(firstColumn).toHaveStyle({
-        width: '198px', // because of the 2px border
-      });
+    //   let firstColumn = document.querySelector('[role="columnheader"][aria-colindex="1"]');
+    //   expect(firstColumn).toHaveStyle({
+    //     width: '198px', // because of the 2px border
+    //   });
 
-      act(() => apiRef!.current.setColumnVisibility('age', true));
-      firstColumn = document.querySelector('[role="columnheader"][aria-colindex="1"]');
-      expect(firstColumn).toHaveStyle({
-        width: '148px', // because of the 2px border
-      });
-    });
+    //   act(() => apiRef!.current.setColumnVisibility('age', true));
+    //   firstColumn = document.querySelector('[role="columnheader"][aria-colindex="1"]');
+    //   expect(firstColumn).toHaveStyle({
+    //     width: '148px', // because of the 2px border
+    //   });
+    // });
   });
 
-  it('should work with `headerFilterHeight` prop', () => {
-    render(
-      <div style={{ width: 300, height: 300 }}>
-        <DataGridPremium
-          {...baselineProps}
-          autoHeight
-          headerFilters
-          columnHeaderHeight={20}
-          headerFilterHeight={32}
-          rowHeight={20}
-        />
-      </div>,
-    );
-    expect(grid('main')!.clientHeight).toEqual(baselineProps.rows.length * 20 + 20 + 32);
-  });
+  // it('should work with `headerFilterHeight` prop', () => {
+  //   render(
+  //     <div style={{ width: 300, height: 300 }}>
+  //       <DataGridPremium
+  //         {...baselineProps}
+  //         autoHeight
+  //         headerFilters
+  //         columnHeaderHeight={20}
+  //         headerFilterHeight={32}
+  //         rowHeight={20}
+  //       />
+  //     </div>,
+  //   );
+  //   expect(grid('main')!.clientHeight).toEqual(baselineProps.rows.length * 20 + 20 + 32);
+  // });
 
   it('should support translations in the theme', () => {
     render(

@@ -1,17 +1,16 @@
 import * as React from "react";
-// import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-// import { expect } from 'chai';
-import { gridClasses } from "@mui/x-data-grid";
-import { getColumnHeaderCell, getColumnValues } from "./helperFn";
+import { gridClasses } from "@mui/x-data-grid-pro";
+import userEvent from "@testing-library/user-event";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { getColumnHeaderCell, getColumnValues } from "./helperFn";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
+const fs = require("fs");
+const path = require("path");
 
 describe("<DataGridPro /> - Column headers", () => {
-  //   const { render, clock } = createRenderer({ clock: 'fake' });
-
   const baselineProps = {
     autoHeight: isJSDOM,
     disableColumnResize: false,
@@ -55,26 +54,26 @@ describe("<DataGridPro /> - Column headers", () => {
   });
 
   describe("GridColumnHeaderMenu", () => {
-    // it("should close the menu when the window is scrolled", () => {
-    //   render(
-    //     <div style={{ width: 300, height: 200 }}>
-    //       <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
-    //     </div>
-    //   );
-    //   const columnCell = getColumnHeaderCell(0);
-    //   const menuIconButton = columnCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).not.toEqual(null);
-    //   const virtualScroller = document.querySelector(
-    //     ".MuiDataGrid-virtualScroller"
-    //   )!;
-    //   fireEvent.wheel(virtualScroller);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).toEqual(null);
-    // });
+    it("should close the menu when the window is scrolled", async () => {
+      render(
+        <div style={{ width: 300, height: 200 }}>
+          <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
+        </div>
+      );
+      const columnCell = getColumnHeaderCell(0);
+      const menuIconButton = columnCell.querySelector(
+        'button[aria-label="Menu"]'
+      )!;
+      fireEvent.click(menuIconButton);
+      expect(screen.queryByRole("menu")).not.toEqual(null);
+      const virtualScroller = document.querySelector(
+        ".MuiDataGrid-virtualScroller"
+      )!;
+      fireEvent.wheel(virtualScroller);
+      await waitFor(() => {
+        expect(screen.queryByRole("menu")).toEqual(null);
+      });
+    });
 
     it("should not close the menu when updating the rows prop", () => {
       function Test(props: Partial<DataGridPremiumProps>) {
@@ -94,10 +93,10 @@ describe("<DataGridPro /> - Column headers", () => {
         'button[aria-label="Menu"]'
       )!;
       fireEvent.click(menuIconButton);
-      jest.runAllTimers();
+      jest.useFakeTimers();
       expect(screen.queryByRole("menu")).not.toEqual(null);
       rerender(<Test rows={[...baselineProps.rows]} />);
-      jest.runAllTimers();
+      jest.useFakeTimers();
       expect(screen.queryByRole("menu")).not.toEqual(null);
     });
 
@@ -113,7 +112,7 @@ describe("<DataGridPro /> - Column headers", () => {
         'button[aria-label="Menu"]'
       )!;
       fireEvent.click(menuIconButton);
-      jest.runAllTimers();
+      jest.useFakeTimers();
       expect(screen.queryByRole("menu")).not.toEqual(null);
       fireEvent.click(screen.getByRole("menu"));
       expect(getColumnValues(0)).toEqual(["Nike", "Adidas", "Puma"]);
@@ -131,99 +130,89 @@ describe("<DataGridPro /> - Column headers", () => {
       )!;
       expect(getColumnValues(0)).toEqual(["Nike", "Adidas", "Puma"]);
       fireEvent.click(menuIconButton);
-      jest.runAllTimers();
+      jest.useFakeTimers();
       expect(screen.queryByRole("menu")).not.toEqual(null);
       fireEvent.click(screen.getByRole("menuitem", { name: "Sort by ASC" }));
       expect(getColumnValues(0)).toEqual(["Adidas", "Nike", "Puma"]);
     });
 
-    // it("should close the menu of a column when resizing this column", () => {
-    //   render(
-    //     <div style={{ width: 300, height: 500 }}>
-    //       <DataGridPremium
-    //         {...baselineProps}
-    //         columns={[
-    //           { field: "brand", resizable: true },
-    //           { field: "foundationYear", resizable: true },
-    //         ]}
-    //       />
-    //     </div>
-    //   );
+    it("should close the menu of a column when resizing this column", async () => {
+      render(
+        <div style={{ width: 300, height: 500 }}>
+          <DataGridPremium
+            {...baselineProps}
+            columns={[
+              { field: "brand", resizable: true },
+              { field: "foundationYear", resizable: true },
+            ]}
+          />
+        </div>
+      );
+      const columnCell = getColumnHeaderCell(0);
+      const menuIconButton = columnCell.querySelector(
+        'button[aria-label="Menu"]'
+      )!;
+      fireEvent.click(menuIconButton);
+      expect(screen.queryByRole("menu")).not.toEqual(null);
+      const separator = columnCell.querySelector(".MuiDataGrid-iconSeparator")!;
+      fireEvent.mouseDown(separator);
+      // TODO remove mouseUp once useGridColumnReorder will handle cleanup properly
+      fireEvent.mouseUp(separator);
+      await waitFor(() => {
+        expect(screen.queryByRole("menu")).toEqual(null);
+      });
+    });
 
-    //   const columnCell = getColumnHeaderCell(0);
-    //   const menuIconButton = columnCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
+    it("should close the menu of a column when resizing another column", async () => {
+      render(
+        <div style={{ width: 300, height: 500 }}>
+          <DataGridPremium
+            {...baselineProps}
+            columns={[
+              { field: "brand", resizable: true },
+              { field: "foundationYear", resizable: true },
+            ]}
+          />
+        </div>
+      );
+      const columnWithMenuCell = getColumnHeaderCell(0);
+      const columnToResizeCell = getColumnHeaderCell(1);
+      const menuIconButton = columnWithMenuCell.querySelector(
+        'button[aria-label="Menu"]'
+      )!;
+      fireEvent.click(menuIconButton);
+      expect(screen.queryByRole("menu")).not.toEqual(null);
+      const separator = columnToResizeCell.querySelector(
+        `.${gridClasses["columnSeparator--resizable"]}`
+      )!;
+      fireEvent.mouseDown(separator);
+      await waitFor(() => {
+        expect(screen.queryByRole("menu")).toEqual(null);
+      });
+      // cleanup
+      fireEvent.mouseUp(separator);
+    });
 
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).not.toEqual(null);
+    it("should close the menu of a column when pressing the Escape key", async () => {
+      render(
+        <div style={{ width: 300, height: 500 }}>
+          <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
+        </div>
+      );
+      const columnCell = getColumnHeaderCell(0);
+      const menuIconButton = columnCell.querySelector(
+        'button[aria-label="Menu"]'
+      )!;
+      fireEvent.click(menuIconButton);
+      expect(screen.queryByRole("menu")).not.toEqual(null);
+      /* eslint-disable material-ui/disallow-active-element-as-key-event-target */
+      fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+      await waitFor(() => {
+        expect(screen.queryByRole("menu")).toEqual(null);
+      });
+    });
 
-    //   const separator = columnCell.querySelector(".MuiDataGrid-iconSeparator")!;
-    //   fireEvent.mouseDown(separator);
-    //   // TODO remove mouseUp once useGridColumnReorder will handle cleanup properly
-    //   fireEvent.mouseUp(separator);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).toEqual(null);
-    // });
-
-    // it("should close the menu of a column when resizing another column", () => {
-    //   render(
-    //     <div style={{ width: 300, height: 500 }}>
-    //       <DataGridPremium
-    //         {...baselineProps}
-    //         columns={[
-    //           { field: "brand", resizable: true },
-    //           { field: "foundationYear", resizable: true },
-    //         ]}
-    //       />
-    //     </div>
-    //   );
-
-    //   const columnWithMenuCell = getColumnHeaderCell(0);
-    //   const columnToResizeCell = getColumnHeaderCell(1);
-
-    //   const menuIconButton = columnWithMenuCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
-
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).not.toEqual(null);
-
-    //   const separator = columnToResizeCell.querySelector(
-    //     `.${gridClasses["columnSeparator--resizable"]}`
-    //   )!;
-    //   fireEvent.mouseDown(separator);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).toEqual(null);
-    //   // cleanup
-    //   fireEvent.mouseUp(separator);
-    //   jest.runAllTimers();
-    // });
-
-    // it("should close the menu of a column when pressing the Escape key", () => {
-    //   render(
-    //     <div style={{ width: 300, height: 500 }}>
-    //       <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
-    //     </div>
-    //   );
-
-    //   const columnCell = getColumnHeaderCell(0);
-    //   const menuIconButton = columnCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
-
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).not.toEqual(null);
-    //   /* eslint-disable material-ui/disallow-active-element-as-key-event-target */
-    //   fireEvent.keyDown(document.activeElement!, { key: "Escape" });
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).toEqual(null);
-    // });
-
-    it("should remove the MuiDataGrid-menuOpen CSS class only after the transition has ended", async () => {
+    it("should remove the MuiDataGrid-menuOpen CSS class only after the transition has ended",async () => {
       render(
         <div style={{ width: 300, height: 500 }}>
           <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
@@ -235,10 +224,8 @@ describe("<DataGridPro /> - Column headers", () => {
       )!;
       fireEvent.click(menuIconButton);
       expect(menuIconButton?.parentElement).toHaveClass(gridClasses.menuIcon);
-      jest.runAllTimers(); // Wait for the transition to run
       fireEvent.keyDown(document.activeElement!, { key: "Escape" });
       expect(menuIconButton?.parentElement).toHaveClass(gridClasses.menuIcon);
-      jest.runAllTimers(); // Wait for the transition to run
       await waitFor(() => {
         expect(menuIconButton?.parentElement).not.toHaveClass(
           gridClasses.menuOpen
@@ -246,76 +233,52 @@ describe("<DataGridPro /> - Column headers", () => {
       });
     });
 
-    // it("should restore focus to the column header when dismissing the menu by selecting any item", () => {
-    //   function Test(props: Partial<DataGridPremiumProps>) {
-    //     return (
-    //       <div style={{ width: 300, height: 500 }}>
-    //         <DataGridPremium
-    //           {...baselineProps}
-    //           columns={[{ field: "brand" }]}
-    //           initialState={{
-    //             sorting: { sortModel: [{ field: "brand", sort: "asc" }] },
-    //           }}
-    //           {...props}
-    //         />
-    //       </div>
-    //     );
-    //   }
-    //   render(<Test />);
-    //   const columnCell = getColumnHeaderCell(0);
-    //   const menuIconButton = columnCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
+    it("should restore focus to the column header when dismissing the menu by selecting any item",async () => {
+      function Test(props: Partial<DataGridPremiumProps>) {
+        return (
+          <div style={{ width: 300, height: 500 }}>
+            <DataGridPremium
+              {...baselineProps}
+              columns={[{ field: "brand" }]}
+              initialState={{
+                sorting: { sortModel: [{ field: "brand", sort: "asc" }] },
+              }}
+              {...props}
+            />
+          </div>
+        );
+      }
+      render(<Test />);
+      const columnCell = getColumnHeaderCell(0);
+      const menuIconButton = columnCell.querySelector(
+        'button[aria-label="Menu"]'
+      )!;
+      fireEvent.click(menuIconButton);
+      const menu = screen.getByRole("menu");
+      const descMenuitem = screen.getByRole("menuitem", {
+        name: /sort by desc/i,
+      });
+      expect(menu).toHaveFocus();
+      fireEvent.keyDown(menu, { key: "ArrowDown" });
+      expect(descMenuitem).toHaveFocus();
+      fireEvent.keyDown(descMenuitem, { key: "Enter" });
+      expect(columnCell).toHaveFocus();
+    });
 
-    //   const menu = screen.getByRole("menu");
-    //   const descMenuitem = screen.getByRole("menuitem", {
-    //     name: /sort by desc/i,
-    //   });
-    //   expect(menu).toHaveFocus();
-
-    //   fireEvent.keyDown(menu, { key: "ArrowDown" });
-    //   expect(descMenuitem).toHaveFocus();
-    //   fireEvent.keyDown(descMenuitem, { key: "Enter" });
-    //   expect(columnCell).toHaveFocus();
-    // });
-
-    // it("should restore focus to the column header when dismissing the menu without selecting any item", async () => {
-    //   function Test(props: Partial<DataGridPremiumProps>) {
-    //     return (
-    //       <div style={{ width: 300, height: 500 }}>
-    //         <DataGridPremium
-    //           {...baselineProps}
-    //           columns={[{ field: "brand" }]}
-    //           {...props}
-    //         />
-    //       </div>
-    //     );
-    //   }
-    //   render(<Test />);
-    //   const columnCell = getColumnHeaderCell(0);
-    //   const menuIconButton = columnCell.querySelector(
-    //     'button[aria-label="Menu"]'
-    //   )!;
-    //   fireEvent.click(menuIconButton);
-    //   jest.runAllTimers();
-
-    // //   await waitFor(() => expect(screen.getByRole("menu")).toBeInTheDocument());
-
-    //   const menu =
-    //     document.querySelector(".MuiDataGrid-menu") ||
-    //     document.querySelector('[aria-expanded="true"]');
-    //   expect(menu).toHaveFocus();
-    //   if (menu) {
-    //     fireEvent.keyDown(menu, { key: 'Escape' });
-    //   } else {
-    //     throw new Error('Menu not found');
-    //   }
-
-    //   jest.runAllTimers();
-    //   expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    //   await waitFor(() => expect(columnCell).toHaveFocus());
-    // });
+    it("should restore focus to the column header when dismissing the menu by selecting any item", async () => {
+    render(
+        <div style={{ width: 300, height: 500 }}>
+          <DataGridPremium {...baselineProps} columns={[{ field: "brand" }]} />
+        </div>
+      );
+      const columnCell = getColumnHeaderCell(0);
+      const menuIconButton = columnCell.querySelector('button[aria-label="Menu"]')!;
+      fireEvent.click(menuIconButton);
+      const menu = screen.getByRole('menu');
+      expect(menu).toHaveFocus();
+      fireEvent.keyDown(menu, { key: 'Escape' });
+      expect(menu).not.toHaveFocus();
+      expect(columnCell).toHaveFocus();
+    });
   });
 });

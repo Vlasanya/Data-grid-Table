@@ -10,8 +10,6 @@ import { getColumnValues } from "./helperFn";
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGrid /> - Quick filter", () => {
-  // const { render } = createRenderer();
-
   const baselineProps = {
     autoHeight: isJSDOM,
     disableVirtualization: true,

@@ -1,11 +1,7 @@
 import * as React from "react";
-// import { expect } from 'chai';
 import axe from "axe-core";
-// import { DataGridPro } from "@mui/x-data-grid-pro";
-
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
-import { useBasicDemoData } from "./test/utils/basic-data-service";
-// import { createRenderer } from '@mui/internal-test-utils';
+import { useBasicDemoData } from "./basic-data-service";
 import { render } from "@testing-library/react";
 
 function logViolations(violations: any) {
@@ -24,8 +20,6 @@ describe("<DataGridPro /> - Accessibility", () => {
      return;
     }
   });
-
-  // const { render } = createRenderer();
 
   it("pinned columns should pass `aria-required-parent` rule", async () => {
     function TestCase() {

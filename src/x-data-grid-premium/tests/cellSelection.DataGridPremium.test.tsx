@@ -1,6 +1,4 @@
 import * as React from "react";
-// import { stub, SinonStub, spy } from "sinon";
-// import { expect } from "chai";
 import { spyApi, getCell, grid } from "./helperFn";
 import {
   render,
@@ -13,7 +11,6 @@ import { gridClasses } from "@mui/x-data-grid";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 import { getBasicGridData } from "./basic-data-service";
-// import { fireUserEvent } from "test/utils/fireUserEvent";
 import userEvent from "@testing-library/user-event";
 import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
@@ -23,8 +20,6 @@ const spy = jest.fn();
 const stub = jest.fn();
 
 describe("<DataGridPremium /> - Cell selection", () => {
-  // const { render } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function TestDataGridSelection({

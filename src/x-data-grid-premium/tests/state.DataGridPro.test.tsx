@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
-import { getColumnValues } from 'test/utils/helperFn';
-import { expect } from 'chai';
-import { DataGridPro, useGridApiRef, GridApi, DataGridProProps } from '@mui/x-data-grid-pro';
+import { render, fireEvent, screen } from "@testing-library/react";
+import { getColumnValues } from './helperFn';
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
-describe('<DataGridPro /> - State', () => {
-  const { render } = createRenderer();
-
+describe('<DataGridPremium /> - State', () => {
   const baselineProps = {
     autoHeight: isJSDOM,
     rows: [
@@ -34,13 +34,13 @@ describe('<DataGridPro /> - State', () => {
 
     function Test() {
       apiRef = useGridApiRef();
-      const onStateChange: DataGridProProps['onStateChange'] = (params) => {
+      const onStateChange: DataGridPremiumProps['onStateChange'] = (params) => {
         onStateParams = params;
       };
 
       return (
         <div style={{ width: 300, height: 300 }}>
-          <DataGridPro {...baselineProps} onStateChange={onStateChange} apiRef={apiRef} />
+          <DataGridPremium {...baselineProps} onStateChange={onStateChange} apiRef={apiRef} />
         </div>
       );
     }
@@ -48,8 +48,8 @@ describe('<DataGridPro /> - State', () => {
     render(<Test />);
     const header = screen.getByRole('columnheader', { name: 'brand' });
     fireEvent.click(header);
-    expect(onStateParams).to.equal(apiRef!.current.state);
-    expect(onStateParams).not.to.equal(undefined);
+    expect(onStateParams).toEqual(apiRef!.current.state);
+    expect(onStateParams).not.toEqual(undefined);
   });
 
   it('should allow to control the state using apiRef', () => {
@@ -65,12 +65,12 @@ describe('<DataGridPro /> - State', () => {
       }, [apiRef]);
       return (
         <div style={{ width: 300, height: 300 }}>
-          <DataGridPro {...baselineProps} apiRef={apiRef} />
+          <DataGridPremium {...baselineProps} apiRef={apiRef} />
         </div>
       );
     }
 
     render(<GridStateTest />);
-    expect(getColumnValues(0)).to.deep.equal(['Adidas', 'Nike', 'Puma']);
+    expect(getColumnValues(0)).toEqual(['Adidas', 'Nike', 'Puma']);
   });
 });

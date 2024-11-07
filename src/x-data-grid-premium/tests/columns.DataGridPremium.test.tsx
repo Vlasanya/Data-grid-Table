@@ -6,7 +6,6 @@ import {
   act,
   waitFor,
 } from "@testing-library/react";
-// import { expect } from 'chai';
 import { gridClasses } from '@mui/x-data-grid';
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { getCell, getColumnHeaderCell } from './helperFn';
@@ -14,8 +13,6 @@ import { getCell, getColumnHeaderCell } from './helperFn';
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe('<DataGridPremium /> - Columns', () => {
-  // const { render } = createRenderer();
-
   describe('resizing', () => {
     // https://github.com/mui/mui-x/issues/10078
     it('should properly resize aggregated column', function test() {

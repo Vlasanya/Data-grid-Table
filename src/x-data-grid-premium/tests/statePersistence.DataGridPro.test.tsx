@@ -1,22 +1,21 @@
 import * as React from 'react';
 import {
-  DataGridPro,
-  DataGridProProps,
   getDefaultGridFilterModel,
-  GridApi,
   GridColDef,
-  GridInitialState,
   GridPreferencePanelsValue,
-  GridRowsProp,
-  useGridApiRef,
-} from '@mui/x-data-grid-pro';
-import { createRenderer, screen, act } from '@mui/internal-test-utils';
-import { expect } from 'chai';
+  GridRowsProp
+} from '@mui/x-data-grid';
+import { GridInitialStatePremium } from "../models/gridStatePremium";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { render, act, screen } from "@testing-library/react";
 import {
   getColumnHeaderCell,
   getColumnHeadersTextContent,
   getColumnValues,
-} from 'test/utils/helperFn';
+} from './helperFn';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
@@ -44,7 +43,7 @@ const columns: GridColDef[] = [
   },
 ];
 
-const FULL_INITIAL_STATE: GridInitialState = {
+const FULL_INITIAL_STATE: GridInitialStatePremium = {
   columns: {
     columnVisibilityModel: { idBis: false },
     orderedFields: ['id', 'category', 'idBis'],
@@ -80,19 +79,21 @@ const FULL_INITIAL_STATE: GridInitialState = {
     sortModel: [{ field: 'id', sort: 'desc' }],
   },
   density: 'compact',
+  rowGrouping: {
+    model: [],
+  },
 };
 
-describe('<DataGridPro /> - State persistence', () => {
-  const { render, clock } = createRenderer({ clock: 'fake' });
 
+describe('<DataGridPremium /> - State persistence', () => {
   let apiRef: React.MutableRefObject<GridApi>;
 
-  function TestCase(props: Omit<DataGridProProps, 'rows' | 'columns' | 'apiRef'>) {
+  function TestCase(props: Omit<DataGridPremiumProps, 'rows' | 'columns' | 'apiRef'>) {
     apiRef = useGridApiRef();
 
     return (
       <div style={{ width: 300, height: 300 }}>
-        <DataGridPro
+        <DataGridPremium
           rows={rows}
           columns={columns}
           pagination
@@ -118,7 +119,7 @@ describe('<DataGridPro /> - State persistence', () => {
   describe('apiRef: exportState', () => {
     it('should export the default values of the models', () => {
       render(<TestCase />);
-      expect(apiRef.current.exportState()).to.deep.equal({
+      expect(apiRef.current.exportState()).toEqual({
         columns: {
           columnVisibilityModel: {},
           orderedFields: ['id', 'idBis', 'category'],
@@ -135,16 +136,19 @@ describe('<DataGridPro /> - State persistence', () => {
         preferencePanel: {
           open: false,
         },
+        rowGrouping: {
+          model: [],
+        },
         sorting: {
           sortModel: [],
         },
         density: 'standard',
       });
-    });
+    });    
 
     it('should not export the default values of the models when using exportOnlyDirtyModels', () => {
       render(<TestCase />);
-      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).to.deep.equal({
+      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).toEqual({
         columns: {
           orderedFields: ['id', 'idBis', 'category'],
         },
@@ -153,7 +157,7 @@ describe('<DataGridPro /> - State persistence', () => {
 
     it('should export the initial values of the models', () => {
       render(<TestCase initialState={FULL_INITIAL_STATE} />);
-      expect(apiRef.current.exportState()).to.deep.equal(FULL_INITIAL_STATE);
+      expect(apiRef.current.exportState()).toEqual(FULL_INITIAL_STATE);
     });
 
     it('should export the controlled values of the models', () => {
@@ -180,7 +184,7 @@ describe('<DataGridPro /> - State persistence', () => {
           }}
         />,
       );
-      expect(apiRef.current.exportState()).to.deep.equal(FULL_INITIAL_STATE);
+      expect(apiRef.current.exportState()).toEqual(FULL_INITIAL_STATE);
     });
 
     it('should export the controlled values of the models when using exportOnlyDirtyModels', () => {
@@ -208,16 +212,28 @@ describe('<DataGridPro /> - State persistence', () => {
           }}
         />,
       );
-      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).to.deep.equal(
-        FULL_INITIAL_STATE,
-      );
+      const expectedState = {
+        ...FULL_INITIAL_STATE,
+        rowGrouping: undefined,
+      };
+      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).toEqual(expectedState);
     });
 
     it('should export the initial values of the models when using exportOnlyUserModels', () => {
       render(<TestCase initialState={FULL_INITIAL_STATE} />);
-      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).to.deep.equal(
+      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).toEqual(
         FULL_INITIAL_STATE,
       );
+    });
+
+
+    it('should not export the default values of the models when using exportOnlyDirtyModels', () => {
+      render(<TestCase />);
+      expect(apiRef.current.exportState({ exportOnlyDirtyModels: true })).toEqual({
+        columns: {
+          orderedFields: ['id', 'idBis', 'category'],
+        },
+      });
     });
 
     it('should export the current version of the exportable state', () => {
@@ -235,7 +251,7 @@ describe('<DataGridPro /> - State persistence', () => {
         apiRef.current.setColumnVisibilityModel({ idBis: false });
         apiRef.current.setDensity('compact');
       });
-      expect(apiRef.current.exportState()).to.deep.equal(FULL_INITIAL_STATE);
+      expect(apiRef.current.exportState()).toEqual(FULL_INITIAL_STATE);
     });
   });
 
@@ -246,16 +262,16 @@ describe('<DataGridPro /> - State persistence', () => {
       act(() => apiRef.current.restoreState(FULL_INITIAL_STATE));
 
       // Pinning, pagination, sorting and filtering
-      expect(getColumnValues(0)).to.deep.equal(['3', '2']);
+      expect(getColumnValues(0)).toEqual(['3', '2']);
 
       // Preference panel
-      expect(screen.getByRole('button', { name: /Add Filter/i })).not.to.equal(null);
+      expect(screen.getByRole('button', { name: /Add Filter/i })).not.toEqual(null);
 
       // Columns visibility
-      expect(getColumnHeadersTextContent()).to.deep.equal(['id', 'category']);
+      expect(getColumnHeadersTextContent()).toEqual(['id', 'category']);
 
       // Columns dimensions
-      expect(getColumnHeaderCell(1)).toHaveInlineStyle({ width: '75px' });
+      expect(getColumnHeaderCell(1)).toHaveStyle({ width: '75px' });
     });
 
     it('should restore partial exportable state', () => {
@@ -269,7 +285,7 @@ describe('<DataGridPro /> - State persistence', () => {
         }),
       );
 
-      expect(getColumnValues(0)).to.deep.equal(['2', '3']);
+      expect(getColumnValues(0)).toEqual(['2', '3']);
     });
 
     it('should restore controlled sub-state', () => {
@@ -293,8 +309,8 @@ describe('<DataGridPro /> - State persistence', () => {
           },
         }),
       );
-      clock.runToLast();
-      expect(getColumnValues(0)).to.deep.equal(['2', '3']);
+      jest.runAllTimers();
+      expect(getColumnValues(0)).toEqual(['2', '3']);
     });
   });
 });

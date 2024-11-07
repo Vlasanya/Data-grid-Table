@@ -16,9 +16,7 @@ import {
   getSelectByName,
   getRow,
 } from "./helperFn";
-// import { fireUserEvent } from 'test/utils/fireUserEvent';
 import userEvent from "@testing-library/user-event";
-// import { expect } from 'chai';
 import {
   GridPreferencePanelsValue,
   GridRowsProp,
@@ -35,7 +33,6 @@ import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
 import { GridGroupingColDefOverrideParams } from "../models/gridGroupingColDefOverride";
 import { getGroupRowIdFromPath } from '../utils/tree/utils';
-// import { spy } from 'sinon';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 

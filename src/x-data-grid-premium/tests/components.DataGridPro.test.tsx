@@ -1,5 +1,4 @@
 import * as React from 'react';
-// import { createRenderer, EventType, fireEvent } from '@mui/internal-test-utils';
 import {
   render,
   screen,
@@ -8,8 +7,6 @@ import {
   waitFor,
   fireEvent,
 } from "@testing-library/react";
-// import { spy } from 'sinon';
-// import { expect } from 'chai';
 import {
   DataGridPro,
   gridClasses,
@@ -17,14 +14,11 @@ import {
   DataGridProProps,
   GridApi,
 } from '@mui/x-data-grid-pro';
-import { useBasicDemoData } from '../test/utils/basic-data-service';
-import { getCell, getRow } from '../helperFn';
-// import { fireUserEvent } from '../fireUserEvent';
+import { useBasicDemoData } from './basic-data-service';
+import { getCell, getRow } from './helperFn';
 import userEvent from "@testing-library/user-event";
 
 describe('<DataGridPro/> - Components', () => {
-  // const { render } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function TestCase(props: Partial<DataGridProProps>) {

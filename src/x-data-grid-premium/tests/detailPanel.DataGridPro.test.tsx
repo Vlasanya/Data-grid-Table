@@ -1,24 +1,15 @@
 import * as React from "react";
-// import { expect } from 'chai';
-// import { spy } from 'sinon';
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 import { GridRowParams, gridClasses } from "@mui/x-data-grid";
 import { GRID_DETAIL_PANEL_TOGGLE_FIELD } from "../hooks/features/detailPanel/gridDetailPanelToggleColDef";
-import { useBasicDemoData } from "./test/utils/basic-data-service";
+import { useBasicDemoData } from "./basic-data-service";
 import {
   getBasicGridData,
   GridBasicData,
-} from "./test/utils/basic-data-service";
-// import {
-//   createRenderer,
-//   fireEvent,
-//   screen,
-//   waitFor,
-//   act,
-// } from "@mui/internal-test-utils";
+} from "./basic-data-service";
 import {
   render,
   screen,
@@ -42,8 +33,6 @@ const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 const spy = jest.fn();
 
 describe("<DataGridPro /> - Detail panel", () => {
-  //   const { render } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function TestCase({

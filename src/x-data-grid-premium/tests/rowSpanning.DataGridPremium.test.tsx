@@ -1,15 +1,11 @@
 import * as React from "react";
-// import { createRenderer } from '@mui/internal-test-utils';
 import { render } from "@testing-library/react";
-// import { expect } from "chai";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGridPremium /> - Row spanning", () => {
-  // const { render } = createRenderer();
-
   const baselineProps: DataGridPremiumProps = {
     unstable_rowSpanning: true,
     columns: [

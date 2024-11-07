@@ -1,6 +1,4 @@
 import * as React from "react";
-// import { spy } from 'sinon';
-// import { expect } from 'chai';
 import {
   gridClasses,
   GridPinnedColumnPosition,
@@ -11,14 +9,15 @@ import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
-import { useBasicDemoData } from "./test/utils/basic-data-service";
-// import { createRenderer, fireEvent, screen, createEvent, act } from '@mui/internal-test-utils';
+import { useBasicDemoData } from "./basic-data-service";
 import {
   render,
   screen,
   act,
   createEvent,
   fireEvent,
+  waitFor,
+  cleanup,
 } from "@testing-library/react";
 import {
   $,
@@ -29,7 +28,6 @@ import {
   getColumnHeadersTextContent,
   grid,
 } from "./helperFn";
-// import { fireUserEvent } from 'test/utils/fireUserEvent';
 import userEvent from "@testing-library/user-event";
 
 // TODO Move to utils
@@ -45,11 +43,8 @@ function createDragOverEvent(target: ChildNode) {
 }
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
-const spy = jest.fn();
 
 describe("<DataGridPro /> - Column pinning", () => {
-  //   const { render, clock } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function TestCase({
@@ -99,6 +94,7 @@ describe("<DataGridPro /> - Column pinning", () => {
 
   afterEach(() => {
     window.ResizeObserver = originalResizeObserver;
+    cleanup();
   });
 
   it("should scroll when the next cell to focus is covered by the left pinned columns", function test() {
@@ -203,25 +199,24 @@ describe("<DataGridPro /> - Column pinning", () => {
     );
   });
 
-  // it("should not allow to drop a column on top of a pinned column", () => {
-  //   const onPinnedColumnsChange = spy();
-  //   render(
-  //     <TestCase
-  //       nbCols={3}
-  //       initialState={{ pinnedColumns: { right: ["price1M"] } }}
-  //       onPinnedColumnsChange={onPinnedColumnsChange}
-  //     />
-  //   );
+  it("should not allow to drop a column on top of a pinned column", () => {
+    const onPinnedColumnsChange = jest.fn();
+    render(
+      <TestCase
+        nbCols={3}
+        initialState={{ pinnedColumns: { right: ["price1M"] } }}
+        onPinnedColumnsChange={onPinnedColumnsChange}
+      />
+    );
 
-  //   const dragCol = getColumnHeaderCell(1).firstChild!;
-  //   const targetCell = getCell(0, 2)!;
-  //   fireEvent.dragStart(dragCol);
-  //   fireEvent.dragEnter(targetCell);
-  //   const dragOverEvent = createDragOverEvent(targetCell);
-  //   fireEvent(targetCell, dragOverEvent);
-
-  //   expect(onPinnedColumnsChange.callCount).toEqual(0);
-  // });
+    const dragCol = getColumnHeaderCell(1).firstChild!;
+    const targetCell = getCell(0, 2)!;
+    fireEvent.dragStart(dragCol);
+    fireEvent.dragEnter(targetCell);
+    const dragOverEvent = createDragOverEvent(targetCell);
+    fireEvent(targetCell, dragOverEvent);
+    expect(onPinnedColumnsChange).toHaveBeenCalledTimes(0);
+  });
 
   it("should filter out invalid columns when blocking a column from being dropped", () => {
     render(
@@ -264,7 +259,6 @@ describe("<DataGridPro /> - Column pinning", () => {
       // Doesn't work with mocked window.getComputedStyle
       return;
     }
-
     render(
       <div style={{ width: 300, height: 500 }}>
         <TestCase
@@ -273,7 +267,6 @@ describe("<DataGridPro /> - Column pinning", () => {
         />
       </div>
     );
-
     const computedStyle = window.getComputedStyle(
       document.querySelector<HTMLElement>(".MuiDataGrid-cell--pinnedRight")!
     );
@@ -290,7 +283,6 @@ describe("<DataGridPro /> - Column pinning", () => {
       // Needs layouting
       return;
     }
-
     const rowHeight = 50;
     const columns: GridColDef[] = [
       { field: "id", headerName: "ID", width: 120 },
@@ -314,55 +306,62 @@ describe("<DataGridPro /> - Column pinning", () => {
         />
       </div>
     );
-
     expect(grid("virtualScroller")?.scrollHeight).toEqual(
       (rows.length + 1) * rowHeight
     );
   });
 
   describe("props: onPinnedColumnsChange", () => {
-    // it("should call when a column is pinned", () => {
-    //   const handlePinnedColumnsChange = spy();
-    //   render(<TestCase onPinnedColumnsChange={handlePinnedColumnsChange} />);
-    //   act(() =>
-    //     apiRef.current.pinColumn("currencyPair", GridPinnedColumnPosition.LEFT)
-    //   );
-    //   expect(handlePinnedColumnsChange.lastCall.args[0]).toEqual({
-    //     left: ["currencyPair"],
-    //     right: [],
-    //   });
-    //   act(() =>
-    //     apiRef.current.pinColumn("price17M", GridPinnedColumnPosition.RIGHT)
-    //   );
-    //   expect(handlePinnedColumnsChange.lastCall.args[0]).toEqual({
-    //     left: ["currencyPair"],
-    //     right: ["price17M"],
-    //   });
-    // });
+    it("should call when a column is pinned", () => {
+      const handlePinnedColumnsChange = jest.fn();
+      render(<TestCase onPinnedColumnsChange={handlePinnedColumnsChange} />);
+      act(() =>
+        apiRef.current.pinColumn("currencyPair", GridPinnedColumnPosition.LEFT)
+      );
+      expect(
+        handlePinnedColumnsChange.mock.calls[
+          handlePinnedColumnsChange.mock.calls.length - 1
+        ][0]
+      ).toEqual({
+        left: ["currencyPair"],
+        right: [],
+      });
+      act(() =>
+        apiRef.current.pinColumn("price17M", GridPinnedColumnPosition.RIGHT)
+      );
+      expect(
+        handlePinnedColumnsChange.mock.calls[
+          handlePinnedColumnsChange.mock.calls.length - 1
+        ][0]
+      ).toEqual({
+        left: ["currencyPair"],
+        right: ["price17M"],
+      });
+    });
 
-  //   it("should not change the pinned columns when it is called", async () => {
-  //     const handlePinnedColumnsChange = spy();
-  //     render(
-  //       <TestCase
-  //         pinnedColumns={{ left: ["currencyPair"] }}
-  //         onPinnedColumnsChange={handlePinnedColumnsChange}
-  //       />
-  //     );
-  //     expect(
-  //       $$(`[role="gridcell"].${gridClasses["cell--pinnedLeft"]}`)
-  //     ).toHaveLength(1);
-  //     act(() =>
-  //       apiRef.current.pinColumn("price17M", GridPinnedColumnPosition.LEFT)
-  //     );
-  //     await microtasks();
-  //     expect(
-  //       $$(`[role="gridcell"].${gridClasses["cell--pinnedLeft"]}`)
-  //     ).toHaveLength(1);
-  //     expect(handlePinnedColumnsChange.lastCall.args[0]).toEqual({
-  //       left: ["currencyPair", "price17M"],
-  //       right: [],
-  //     });
-  //   });
+    it("should not change the pinned columns when it is called", async () => {
+      const handlePinnedColumnsChange = jest.fn();
+      render(
+        <TestCase
+          pinnedColumns={{ left: ["currencyPair"] }}
+          onPinnedColumnsChange={handlePinnedColumnsChange}
+        />
+      );
+      expect(
+        $$(`[role="gridcell"].${gridClasses["cell--pinnedLeft"]}`)
+      ).toHaveLength(1);
+      act(() =>
+        apiRef.current.pinColumn("price17M", GridPinnedColumnPosition.LEFT)
+      );
+      await microtasks();
+      expect(
+        $$(`[role="gridcell"].${gridClasses["cell--pinnedLeft"]}`)
+      ).toHaveLength(1);
+      expect(handlePinnedColumnsChange.mock.calls[0][0]).toEqual({
+        left: ["currencyPair", "price17M"],
+        right: [],
+      });
+    });
   });
 
   describe("prop: pinnedColumns", () => {
@@ -638,41 +637,44 @@ describe("<DataGridPro /> - Column pinning", () => {
   describe("column menu", () => {
     it('should pin the column to the left when clicking the "Pin to left" pinning button', async () => {
       render(<TestCase />);
-    //   const user = userEvent.setup();
       const columnCell = $('[role="columnheader"][data-field="id"]')!;
       const menuIconButton = columnCell.querySelector(
         'button[aria-label="Menu"]'
       )!;
       await userEvent.click(menuIconButton);
-      await userEvent.click(screen.getByRole("menuitem", { name: "Pin to left" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Pin to left" })
+      );
       expect(
         $(`.${gridClasses["cell--pinnedLeft"]}[data-field="id"]`)
       ).not.toEqual(null);
     });
 
     it('should pin the column to the right when clicking the "Pin to right" pinning button', async () => {
-     render(<TestCase />);
+      render(<TestCase />);
       const columnCell = $('[role="columnheader"][data-field="id"]')!;
       const menuIconButton = columnCell.querySelector(
         'button[aria-label="Menu"]'
       )!;
       await userEvent.click(menuIconButton);
-      await userEvent.click(screen.getByRole("menuitem", { name: "Pin to right" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Pin to right" })
+      );
       expect(
         $(`.${gridClasses["cell--pinnedRight"]}[data-field="id"]`)
       ).not.toEqual(null);
     });
 
     it('should allow to invert the side when clicking on "Pin to right" pinning button on a left pinned column', async () => {
-      render(
-        <TestCase initialState={{ pinnedColumns: { left: ["id"] } }} />
-      );
+      render(<TestCase initialState={{ pinnedColumns: { left: ["id"] } }} />);
       const columnCell = $('[role="columnheader"][data-field="id"]')!;
       const menuIconButton = columnCell.querySelector(
         'button[aria-label="Menu"]'
       )!;
       await userEvent.click(menuIconButton);
-      await userEvent.click(screen.getByRole("menuitem", { name: "Pin to right" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Pin to right" })
+      );
       expect($(`.${gridClasses["cell--pinnedLeft"]}[data-field="id"]`)).toEqual(
         null
       );
@@ -682,15 +684,15 @@ describe("<DataGridPro /> - Column pinning", () => {
     });
 
     it('should allow to invert the side when clicking on "Pin to left" pinning button on a right pinned column', async () => {
-      render(
-        <TestCase initialState={{ pinnedColumns: { right: ["id"] } }} />
-      );
+      render(<TestCase initialState={{ pinnedColumns: { right: ["id"] } }} />);
       const columnCell = $('[role="columnheader"][data-field="id"]')!;
       const menuIconButton = columnCell.querySelector(
         'button[aria-label="Menu"]'
       )!;
       await userEvent.click(menuIconButton);
-      await userEvent.click(screen.getByRole("menuitem", { name: "Pin to left" }));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Pin to left" })
+      );
       expect(
         $(`.${gridClasses["cell--pinnedRight"]}[data-field="id"]`)
       ).toEqual(null);
@@ -700,9 +702,7 @@ describe("<DataGridPro /> - Column pinning", () => {
     });
 
     it('should allow to unpin a pinned left column when clicking "Unpin" pinning button', async () => {
-      render(
-        <TestCase initialState={{ pinnedColumns: { left: ["id"] } }} />
-      );
+      render(<TestCase initialState={{ pinnedColumns: { left: ["id"] } }} />);
       const columnCell = $('[role="columnheader"][data-field="id"]')!;
       const menuIconButton = columnCell.querySelector(
         'button[aria-label="Menu"]'
@@ -715,140 +715,213 @@ describe("<DataGridPro /> - Column pinning", () => {
     });
 
     describe("with fake timers", () => {
-        jest.useFakeTimers();
 
-      // it("should not render menu items if the column has `pinnable` equals to false", () => {
-      //   render(
-      //     <TestCase
-      //       columns={[
-      //         { field: "brand", pinnable: true },
-      //         { field: "year", pinnable: false },
-      //       ]}
-      //       rows={[{ id: 0, brand: "Nike", year: 1941 }]}
-      //     />
-      //   );
-
-      //   const brandHeader = document.querySelector(
-      //     '[role="columnheader"][data-field="brand"]'
-      //   )!;
-      //   fireEvent.click(
-      //     brandHeader.querySelector('button[aria-label="Menu"]')!
-      //   );
-      //   expect(
-      //     screen.queryByRole("menuitem", { name: "Pin to left" })
-      //   ).not.toEqual(null);
-      //   fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
-
-      //   jest.advanceTimersByTime(3000);
-      //   // Ensure that the first menu was closed
-      //   expect(screen.queryByRole("menuitem", { name: "Pin to left" })).toEqual(
-      //     null
-      //   );
-
-      //   const yearHeader = document.querySelector(
-      //     '[role="columnheader"][data-field="year"]'
-      //   )!;
-      //   fireEvent.click(yearHeader.querySelector('button[aria-label="Menu"]')!);
-      //   expect(screen.queryByRole("menuitem", { name: "Pin to left" })).toEqual(
-      //     null
-      //   );
-      // });
+      it("should not render menu items if the column has `pinnable` equals to false", async () => {
+        render(
+          <TestCase
+            columns={[
+              { field: "brand", pinnable: true },
+              { field: "year", pinnable: false },
+            ]}
+            rows={[{ id: 0, brand: "Nike", year: 1941 }]}
+          />
+        );
+        const brandHeader = document.querySelector(
+          '[role="columnheader"][data-field="brand"]'
+        )!;
+        fireEvent.click(
+          brandHeader.querySelector('button[aria-label="Menu"]')!
+        );
+        expect(
+          screen.queryByRole("menuitem", { name: "Pin to left" })
+        ).not.toEqual(null);
+        fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
+        await waitFor(() => {
+          expect(
+            screen.queryByRole("menuitem", { name: "Pin to left" })
+          ).toEqual(null);
+        });
+        const yearHeader = document.querySelector(
+          '[role="columnheader"][data-field="year"]'
+        )!;
+        fireEvent.click(yearHeader.querySelector('button[aria-label="Menu"]')!);
+        await waitFor(() => {
+          expect(
+            screen.queryByRole("menuitem", { name: "Pin to left" })
+          ).toEqual(null);
+        });
+      });
     });
   });
 
   describe("restore column position after unpinning", () => {
-    // it("should restore the position when unpinning existing columns", () => {
-    //   const { rerender } = render(
-    //     <TestCase nbCols={4} checkboxSelection disableVirtualization />
-    //   );
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "",
-    //     "id",
-    //     "Currency Pair",
-    //     "1M",
-    //     "2M",
-    //   ]);
-    //   rerender(
-    //     <TestCase
-    //       pinnedColumns={{ left: ["currencyPair", "id"], right: ["__check__"] }}
-    //     />
-    //   );
-
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "Currency Pair",
-    //     "id",
-    //     "1M",
-    //     "2M",
-    //     "",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{ left: [], right: [] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "",
-    //     "id",
-    //     "Currency Pair",
-    //     "1M",
-    //     "2M",
-    //   ]);
-    // });
-
-    // it("should restore the position when unpinning a column added after the first pinned column", () => {
-    //   const { rerender } = render(
-    //     <TestCase nbCols={2} disableVirtualization />
-    //   );
-    //   expect(getColumnHeadersTextContent()).toEqual(["id", "Currency Pair"]);
-    //   rerender(<TestCase pinnedColumns={{ left: ["currencyPair"] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual(["Currency Pair", "id"]);
-    //   act(() =>
-    //     apiRef.current.updateColumns([{ field: "foo" }, { field: "bar" }])
-    //   );
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "Currency Pair",
-    //     "id",
-    //     "foo",
-    //     "bar",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{ left: ["currencyPair", "foo"] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "Currency Pair",
-    //     "foo",
-    //     "id",
-    //     "bar",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{}} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "id",
-    //     "Currency Pair",
-    //     "foo",
-    //     "bar",
-    //   ]);
-    // });
-
-    // it("should restore the position of a column pinned before it is added", () => {
+    // it("should restore the position when unpinning existing columns", async () => {
     //   const { rerender } = render(
     //     <TestCase
-    //       nbCols={2}
-    //       pinnedColumns={{ left: ["foo"] }}
+    //       columns={[
+    //         { field: "id", headerName: "ID" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
+    //       ]}
+    //       checkboxSelection
     //       disableVirtualization
     //     />
     //   );
-    //   expect(getColumnHeadersTextContent()).toEqual(["id", "Currency Pair"]);
-    //   act(() =>
-    //     apiRef.current.updateColumns([{ field: "foo" }, { field: "bar" }])
+    //   expect(getColumnHeadersTextContent()).toEqual(['', 'ID', 'Currency Pair', '1M', '2M']);
+    //   rerender(
+    //     <TestCase
+    //       columns={[
+    //         { field: "id", headerName: "ID" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
+    //       ]}
+    //       pinnedColumns={{ left: ['currencyPair', 'id'], right: ['__check__'] }}
+    //     />
     //   );
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "foo",
-    //     "id",
-    //     "Currency Pair",
-    //     "bar",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{}} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "id",
-    //     "Currency Pair",
-    //     "foo",
-    //     "bar",
-    //   ]);
+    //   await act(() => new Promise((r) => setTimeout(r, 300)));
+    //   // await waitFor(() => {
+    //   //   expect(getColumnHeadersTextContent()).toEqual(['Currency Pair', 'ID', '1M', '2M', '']);
+    //   // });
+    //   rerender(
+    //     <TestCase
+    //       columns={[
+    //         { field: "id", headerName: "ID" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
+    //       ]}
+    //       pinnedColumns={{ left: [], right: [] }}
+    //     />
+    //   );
+    //   await waitFor(() => {
+    //     expect(getColumnHeadersTextContent()).toEqual(['', 'ID', 'Currency Pair', '1M', '2M']);
+    //   });
     // });
+
+    it("should restore the position when unpinning a column added after the first pinned column", () => {
+      const { rerender } = render(
+        <TestCase
+          columns={[
+            { field: "id", headerName: "ID" },
+            { field: "currencyPair", headerName: "Currency Pair" },
+          ]}
+          disableVirtualization
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "ID",
+        "Currency Pair",
+      ]);
+      rerender(
+        <TestCase
+          columns={[
+            { field: "id", headerName: "ID" },
+            { field: "currencyPair", headerName: "Currency Pair" },
+          ]}
+          pinnedColumns={{ left: ["currencyPair"] }}
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "Currency Pair",
+        "ID",
+      ]);
+      act(() =>
+        apiRef.current.updateColumns([
+          { field: "foo", headerName: "Foo" },
+          { field: "bar", headerName: "Bar" }
+        ])
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "Currency Pair",
+        "ID",
+        "Foo",
+        "Bar",
+      ]);
+      rerender(
+        <TestCase
+          columns={[
+            { field: "id", headerName: "ID" },
+            { field: "currencyPair", headerName: "Currency Pair" },
+            { field: "foo", headerName: "Foo" },
+            { field: "bar", headerName: "Bar" }
+          ]}
+          pinnedColumns={{ left: ["currencyPair", "foo"] }}
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "Currency Pair",
+        "Foo",
+        "ID",
+        "Bar",
+      ]);
+      rerender(
+        <TestCase
+          columns={[
+            { field: "id", headerName: "ID" },
+            { field: "currencyPair", headerName: "Currency Pair" },
+            { field: "foo", headerName: "Foo" },
+            { field: "bar", headerName: "Bar" }
+          ]}
+          pinnedColumns={{}}
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "ID",
+        "Currency Pair",
+        "Foo",
+        "Bar",
+      ]);
+    });
+
+    it("should restore the position of a column pinned before it is added", async () => {
+      const { rerender } = render(
+        <TestCase
+          columns={[
+            { field: "id" },
+            { field: "currencyPair", headerName: "Currency Pair" }
+          ]}
+          pinnedColumns={{ left: ["foo"] }}
+          disableVirtualization
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "id",
+        "Currency Pair",
+      ]);
+      act(() =>
+        apiRef.current.updateColumns([
+          { field: "foo", headerName: "Foo" },
+          { field: "bar", headerName: "Bar" }
+        ])
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "Foo",
+        "id",
+        "Currency Pair",
+        "Bar",
+      ]);
+      rerender(
+        <TestCase
+          columns={[
+            { field: "id" },
+            { field: "currencyPair", headerName: "Currency Pair" },
+            { field: "foo", headerName: "Foo" },
+            { field: "bar", headerName: "Bar" }
+          ]}
+          pinnedColumns={{}}
+        />
+      );
+      await waitFor(() => {
+        expect(getColumnHeadersTextContent()).toEqual([
+          "id",
+          "Currency Pair",
+          "Foo",
+          "Bar",
+        ]);
+      });
+    });
 
     it("should restore the position of a column unpinned after a column is removed", () => {
       const { rerender } = render(
@@ -870,100 +943,152 @@ describe("<DataGridPro /> - Column pinning", () => {
       ]);
       rerender(<TestCase columns={[{ field: "id" }, { field: "price1M" }]} />);
       expect(getColumnHeadersTextContent()).toEqual(["price1M", "id"]);
-
       rerender(
         <TestCase
-          pinnedColumns={{}}
           columns={[{ field: "id" }, { field: "price1M" }]}
+          pinnedColumns={{}}
         />
       );
       expect(getColumnHeadersTextContent()).toEqual(["id", "price1M"]);
     });
 
-    // it("should restore the position when the neighboring columns are reordered", () => {
-    //   const { rerender } = render(
-    //     <TestCase nbCols={4} disableVirtualization />
-    //   );
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "id",
-    //     "Currency Pair",
-    //     "1M",
-    //     "2M",
-    //   ]); // price1M's index = 2
-    //   rerender(<TestCase pinnedColumns={{ left: ["price1M"] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "1M",
-    //     "id",
-    //     "Currency Pair",
-    //     "2M",
-    //   ]);
-    //   act(() => apiRef.current.setColumnIndex("id", 2));
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "1M",
-    //     "Currency Pair",
-    //     "id",
-    //     "2M",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{}} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "Currency Pair",
-    //     "id",
-    //     "1M",
-    //     "2M",
-    //   ]); // price1M's index = 2
-    // });
-
-    // it("should not crash when unpinning the first column", () => {
+    // it.only("should restore the position when the neighboring columns are reordered", async () => {
     //   const { rerender } = render(
     //     <TestCase
-    //       nbCols={3}
     //       columns={[
     //         { field: "id" },
-    //         { field: "currencyPair" },
-    //         { field: "price1M" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
     //       ]}
-    //       pinnedColumns={{ left: ["id", "currencyPair"] }}
     //       disableVirtualization
     //     />
     //   );
     //   expect(getColumnHeadersTextContent()).toEqual([
     //     "id",
-    //     "currencyPair",
-    //     "price1M",
+    //     "Currency Pair",
+    //     "1M",
+    //     "2M",
     //   ]);
-    //   rerender(<TestCase pinnedColumns={{ left: ["currencyPair"] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "currencyPair",
-    //     "id",
-    //     "price1M",
-    //   ]);
-    // });
-
-    // it("should not crash when unpinning the last column", () => {
-    //   const { rerender } = render(
+    //   rerender(
     //     <TestCase
-    //       nbCols={3}
     //       columns={[
     //         { field: "id" },
-    //         { field: "currencyPair" },
-    //         { field: "price1M" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
     //       ]}
-    //       pinnedColumns={{ right: ["currencyPair", "price1M"] }}
-    //       disableVirtualization
+    //       pinnedColumns={{ left: ["price1M"] }}
     //     />
     //   );
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "id",
-    //     "currencyPair",
-    //     "price1M",
-    //   ]);
-    //   rerender(<TestCase pinnedColumns={{ right: ["currencyPair"] }} />);
-    //   expect(getColumnHeadersTextContent()).toEqual([
-    //     "id",
-    //     "price1M",
-    //     "currencyPair",
-    //   ]);
+    
+    //   await waitFor(() => {
+    //     expect(getColumnHeadersTextContent()).toEqual([
+    //       "1M",
+    //       "id",
+    //       "Currency Pair",
+    //       "2M",
+    //     ]);
+    //   });
+    //   await act(async () => {
+    //     apiRef.current.setColumnIndex("id", 2);
+    //   });
+    
+    //   await waitFor(() => {
+    //     expect(getColumnHeadersTextContent()).toEqual([
+    //       "1M",
+    //       "Currency Pair",
+    //       "id",
+    //       "2M",
+    //     ]);
+    //   });
+    //   rerender(
+    //     <TestCase
+    //       columns={[
+    //         { field: "id" },
+    //         { field: "currencyPair", headerName: "Currency Pair" },
+    //         { field: "price1M", headerName: "1M" },
+    //         { field: "price2M", headerName: "2M" },
+    //       ]}
+    //       pinnedColumns={{}}
+    //     />
+    //   );
+    //   await act(async () => {
+    //     apiRef.current.setColumnIndex("id", 0);
+    //     apiRef.current.setColumnIndex("currencyPair", 1);
+    //     apiRef.current.setColumnIndex("price1M", 2);
+    //     apiRef.current.setColumnIndex("price2M", 3);
+    //   });
+    
+    //   await waitFor(() => {
+    //     expect(getColumnHeadersTextContent()).toEqual([
+    //       "Currency Pair",
+    //       "id",
+    //       "1M",
+    //       "2M",
+    //     ]);
+    //   });
     // });
+
+    it("should not crash when unpinning the first column", () => {
+      const { rerender } = render(
+        <TestCase
+          columns={[
+            { field: "id" },
+            { field: "currencyPair" },
+            { field: "price1M" },
+          ]}
+          pinnedColumns={{ left: ["id", "currencyPair"] }}
+          disableVirtualization
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "id",
+        "currencyPair",
+        "price1M",
+      ]);
+      rerender(<TestCase columns={[{ field: "id" }, { field: "currencyPair" }, { field: "price1M" }]} pinnedColumns={{ left: ["currencyPair"] }} />);
+      expect(getColumnHeadersTextContent()).toEqual([
+        "currencyPair",
+        "id",
+        "price1M",
+      ]);
+    });
+
+    it("should not crash when unpinning the last column", () => {
+      const { rerender } = render(
+        <TestCase
+          nbCols={3}
+          columns={[
+            { field: "id" },
+            { field: "currencyPair" },
+            { field: "price1M" },
+          ]}
+          pinnedColumns={{ right: ["currencyPair", "price1M"] }}
+          disableVirtualization
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "id",
+        "currencyPair",
+        "price1M",
+      ]);
+      rerender(
+        <TestCase
+          columns={[
+            { field: "id" },
+            { field: "currencyPair" },
+            { field: "price1M" },
+          ]}
+          pinnedColumns={{ right: ["currencyPair"] }}
+        />
+      );
+      expect(getColumnHeadersTextContent()).toEqual([
+        "id",
+        "price1M",
+        "currencyPair",
+      ]);
+    });
 
     it("should not crash when removing a pinned column", () => {
       const { rerender } = render(
@@ -983,7 +1108,6 @@ describe("<DataGridPro /> - Column pinning", () => {
         "price1M",
         "currencyPair",
       ]);
-
       rerender(
         <TestCase
           pinnedColumns={{ right: [] }}

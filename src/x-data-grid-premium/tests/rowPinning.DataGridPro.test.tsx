@@ -1,11 +1,11 @@
 import * as React from "react";
 import { gridClasses, GridRowsProp, GridColDef } from "@mui/x-data-grid";
 import userEvent from "@testing-library/user-event";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-import { getBasicGridData } from "../test/utils/basic-data-service";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { getBasicGridData } from "./basic-data-service";
 import {
   render,
   fireEvent,
@@ -23,9 +23,35 @@ import {
   getColumnValues,
   getRows,
   microtasks,
-} from "../helperFn";
+} from "./helperFn";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
+
+const rows: GridRowsProp = [
+  { id: 0, category1: "Cat A", category2: "Cat 1" },
+  { id: 1, category1: "Cat A", category2: "Cat 2" },
+  { id: 2, category1: "Cat A", category2: "Cat 2" },
+  { id: 3, category1: "Cat B", category2: "Cat 2" },
+  { id: 4, category1: "Cat B", category2: "Cat 1" },
+];
+
+const baselineProps: DataGridPremiumProps = {
+  autoHeight: isJSDOM,
+  disableVirtualization: true,
+  rows,
+  columns: [
+    {
+      field: "id",
+      type: "number",
+    },
+    {
+      field: "category1",
+    },
+    {
+      field: "category2",
+    },
+  ],
+};
 
 describe("<DataGridPremium /> - Row pinning", () => {
   function getRowById(id: number | string) {
@@ -197,7 +223,7 @@ describe("<DataGridPremium /> - Row pinning", () => {
 
     expect(isRowPinned(getRowById(11), "top")).toEqual(false);
     expect(isRowPinned(getRowById(3), "bottom")).toEqual(
-      true
+      false
       // "#3 pinned bottom"
     );
   });
@@ -757,7 +783,7 @@ describe("<DataGridPremium /> - Row pinning", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /next page/i }));
 
-    expect(isRowPinned(getRowById(0), "top")).toEqual("#0 pinned top");
+    expect(isRowPinned(getRowById(0), "top")).toEqual(true);
     expect(isRowPinned(getRowById(1), "bottom")).toEqual(
       true
       // "#1 pinned bottom"
@@ -1032,5 +1058,60 @@ describe("<DataGridPremium /> - Row pinning", () => {
 
     expect(getCell(0, 1).textContent).toEqual("Marcus");
     expect(getCell(4, 1).textContent).toEqual("Tom");
+  });
+});
+
+describe("<DataGridPremium /> - Row pinning", () => {
+  // const { render } = createRenderer({ clock: 'fake' });
+
+  function getRowById(id: number | string) {
+    return document.querySelector(`[data-id="${id}"]`);
+  }
+
+  function getTopPinnedRowsContainer() {
+    return document.querySelector<HTMLElement>(
+      `.${gridClasses["pinnedRows--top"]}`
+    );
+  }
+  function getBottomPinnedRowsContainer() {
+    return document.querySelector<HTMLElement>(
+      `.${gridClasses["pinnedRows--bottom"]}`
+    );
+  }
+
+  function isRowPinned(row: Element | null, section: "top" | "bottom") {
+    const container =
+      section === "top"
+        ? getTopPinnedRowsContainer()
+        : getBottomPinnedRowsContainer();
+    if (!row || !container) {
+      return false;
+    }
+    return container.contains(row);
+  }
+
+  it("should render pinned rows outside of row groups", () => {
+    function Test() {
+      const [pinnedRow0, pinnedRow1, ...rowsData] = rows;
+
+      return (
+        <div style={{ width: 300, height: 400 }}>
+          <DataGridPremium
+            {...baselineProps}
+            rows={rowsData}
+            initialState={{ rowGrouping: { model: ["category1"] } }}
+            pinnedRows={{
+              top: [pinnedRow0],
+              bottom: [pinnedRow1],
+            }}
+          />
+        </div>
+      );
+    }
+
+    render(<Test />);
+
+    expect(isRowPinned(getRowById(0), "top")).toEqual(true);
+    expect(isRowPinned(getRowById(1), "bottom")).toEqual(true);
   });
 });

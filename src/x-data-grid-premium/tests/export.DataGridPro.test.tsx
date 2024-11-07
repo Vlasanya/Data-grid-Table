@@ -1,18 +1,14 @@
 import { GridColDef } from "@mui/x-data-grid";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-// import { createRenderer, act } from '@mui/internal-test-utils';
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 import { render, act } from "@testing-library/react";
-// import { expect } from 'chai';
 import * as React from "react";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGridPro /> - Export", () => {
-  // const { render } = createRenderer();
-
   const baselineProps = {
     autoHeight: isJSDOM,
   };

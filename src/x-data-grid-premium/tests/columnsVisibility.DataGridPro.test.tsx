@@ -1,7 +1,4 @@
 import * as React from 'react';
-// import { spy } from 'sinon';
-// import { expect } from 'chai';
-// import { createRenderer, fireEvent, act, screen } from '@mui/internal-test-utils';
 import {
   render,
   screen,
@@ -15,11 +12,11 @@ import {
   GridPreferencePanelsValue,
   GridRowsProp,
 } from '@mui/x-data-grid';
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { getColumnHeadersTextContent } from '../helperFn';
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { getColumnHeadersTextContent } from './helperFn';
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
@@ -28,8 +25,6 @@ const rows: GridRowsProp = [{ id: 1 }];
 const columns: GridColDef[] = [{ field: 'id' }, { field: 'idBis' }];
 
 describe('<DataGridPro /> - Columns visibility', () => {
-  // const { render } = createRenderer({ clock: 'fake' });
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function TestDataGridPremium(

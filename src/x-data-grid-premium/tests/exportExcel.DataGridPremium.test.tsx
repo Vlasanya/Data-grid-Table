@@ -1,9 +1,7 @@
 import * as React from "react";
 import { GridColDef, GridToolbar, GridActionsCellItem } from "@mui/x-data-grid";
 import { render, screen, act } from "@testing-library/react";
-// import { spy, SinonSpy } from "sinon";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
-// import { expect } from 'chai';
 import userEvent from "@testing-library/user-event"; 
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
@@ -14,8 +12,6 @@ import { spyApi } from "./helperFn";
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGridPremium /> - Export Excel", () => {
-  // const { render } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   const columns: GridColDef[] = [
@@ -476,14 +472,14 @@ describe("<DataGridPremium /> - Export Excel", () => {
     };
   });
 
-    // it("should not call getDataAsExcel", async () => {
-    //   render(<TestCaseExcelExport />);
-    //   const getDataAsExcelSpy = spyApi(apiRef.current, "getDataAsExcel");
-    //   await act(() =>
-    //     apiRef.current.exportDataAsExcel({ worker: () => workerMock as any })
-    //   );
-    //   expect(getDataAsExcelSpy.calledOnce).toEqual(false);
-    // });
+    it("should not call getDataAsExcel", async () => {
+      render(<TestCaseExcelExport />);
+      const getDataAsExcelSpy = spyApi(apiRef.current, "getDataAsExcel");
+      await act(() =>
+        apiRef.current.exportDataAsExcel({ worker: () => workerMock as any })
+      );
+      expect(getDataAsExcelSpy).toHaveBeenCalledTimes(0);
+    });
 
     it("should post a message to the web worker with the serialized columns", async () => {
       render(<TestCaseExcelExport />);
@@ -498,33 +494,33 @@ describe("<DataGridPremium /> - Export Excel", () => {
       ]);
     });
 
-    // it("should post a message to the web worker with the serialized rows", async () => {
-    //   render(<TestCaseExcelExport />);
-    //   await act(() =>
-    //     apiRef.current.exportDataAsExcel({ worker: () => workerMock as any })
-    //   );
-    //   expect(
-    //     workerMock.postMessage.mock.calls[0][0].serializedColumns
-    //   ).toEqual([
-    //     {
-    //       dataValidation: {},
-    //       mergedCells: [],
-    //       outlineLevel: 0,
-    //       row: baselineProps.rows[0],
-    //     },
-    //     {
-    //       dataValidation: {},
-    //       mergedCells: [],
-    //       outlineLevel: 0,
-    //       row: baselineProps.rows[1],
-    //     },
-    //     {
-    //       dataValidation: {},
-    //       mergedCells: [],
-    //       outlineLevel: 0,
-    //       row: baselineProps.rows[2],
-    //     },
-    //   ]);
-    // });
+    it("should post a message to the web worker with the serialized rows", async () => {
+      render(<TestCaseExcelExport />);
+      await act(() =>
+        apiRef.current.exportDataAsExcel({ worker: () => workerMock as any })
+      );
+      expect(
+        workerMock.postMessage.mock.calls[0][0].serializedRows
+      ).toEqual([
+        {
+          dataValidation: {},
+          mergedCells: [],
+          outlineLevel: 0,
+          row: baselineProps.rows[0],
+        },
+        {
+          dataValidation: {},
+          mergedCells: [],
+          outlineLevel: 0,
+          row: baselineProps.rows[1],
+        },
+        {
+          dataValidation: {},
+          mergedCells: [],
+          outlineLevel: 0,
+          row: baselineProps.rows[2],
+        },
+      ]);
+    });    
   });
 });

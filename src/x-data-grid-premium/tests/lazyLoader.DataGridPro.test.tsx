@@ -1,8 +1,6 @@
 import * as React from 'react';
-// import { createRenderer, fireEvent, act } from '@mui/internal-test-utils';
 import { render, fireEvent, act } from "@testing-library/react";
 import { getColumnHeaderCell, getColumnValues, getRow } from './helperFn';
-// import { expect } from 'chai';
 import {
   GRID_ROOT_GROUP_ID,
   GridColDef,
@@ -13,20 +11,12 @@ import {
 import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
-// import {
-//     DataGridPro,
-//     DataGridProProps,
-//   } from '@mui/x-data-grid-pro';
-
 import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
-// import { spy } from 'sinon';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 const spy = jest.fn();
 
 describe('<DataGridPro /> - Lazy loader', () => {
-//   const { render } = createRenderer();
-
   const baselineProps: { rows: GridRowsProp; columns: GridColDef[] } = {
     rows: [
       {

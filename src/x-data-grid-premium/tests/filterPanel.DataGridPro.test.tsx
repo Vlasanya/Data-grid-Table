@@ -1,27 +1,21 @@
 import * as React from "react";
-// import { expect } from 'chai';
 import { gridFilterModelSelector } from "@mui/x-data-grid";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-// import { createRenderer, act } from '@mui/internal-test-utils';
-import { render, fireEvent, screen, act, within } from "@testing-library/react";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { render, act } from "@testing-library/react";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGrid /> - Filter panel", () => {
-  // const { render } = createRenderer();
-
   const baselineProps: DataGridPremiumProps = {
     autoHeight: isJSDOM,
     disableVirtualization: true,
     rows: [],
     columns: [{ field: "brand" }],
   };
-
   let apiRef: React.MutableRefObject<GridApi>;
-
   function TestCase(props: Partial<DataGridPremiumProps>) {
     apiRef = useGridApiRef();
     return (

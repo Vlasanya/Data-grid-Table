@@ -1,4 +1,3 @@
-// import { spy } from 'sinon';
 import { screen, act } from "@testing-library/react";
 import { gridClasses } from "@mui/x-data-grid";
 import { unwrapPrivateAPI } from "@mui/x-data-grid/internals";

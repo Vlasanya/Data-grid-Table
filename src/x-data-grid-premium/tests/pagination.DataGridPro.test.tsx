@@ -1,18 +1,12 @@
-// import { createRenderer, act } from '@mui/internal-test-utils';
 import { render, act } from "@testing-library/react";
-import { getColumnValues } from "../helperFn";
+import { getColumnValues } from "./helperFn";
 import * as React from "react";
-// import { expect } from 'chai';
-// import { DataGridPremium, GridApi, useGridApiRef } from '@mui/x-data-grid-pro';
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { useBasicDemoData } from "../test/utils/basic-data-service";
-// import { GridApiPro } from "../../models/gridApiPro";
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { useBasicDemoData } from "./basic-data-service";
 
 describe("<DataGridPremium /> - Pagination", () => {
-  // const { render, clock } = createRenderer({ clock: 'fake' });
-
   describe("setPage", () => {
     it("should apply valid value", () => {
       let apiRef: React.MutableRefObject<GridApi>;

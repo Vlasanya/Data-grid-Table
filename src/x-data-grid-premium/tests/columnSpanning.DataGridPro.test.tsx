@@ -1,20 +1,15 @@
 import * as React from 'react';
-// import { createRenderer, fireEvent, act } from '@mui/internal-test-utils';
 import { render, fireEvent, act, waitFor } from "@testing-library/react";
-// // import { expect } from 'chai';
 import { GridColDef, gridClasses } from '@mui/x-data-grid';
 import { getActiveCell, getCell, getColumnHeaderCell } from './helperFn';
 import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
-// import { fireUserEvent } from 'test/utils/fireUserEvent';
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import userEvent from "@testing-library/user-event";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe('<DataGridPro /> - Column spanning', () => {
-//   const { render } = createRenderer({ clock: 'fake' });
-
   const baselineProps = {
     rows: [
       {

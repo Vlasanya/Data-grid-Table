@@ -1,5 +1,4 @@
 import * as React from "react";
-// import { expect } from 'chai';
 import { render, fireEvent, createEvent, act } from "@testing-library/react";
 import {
   getColumnHeadersTextContent,
@@ -11,8 +10,7 @@ import { gridClasses } from "@mui/x-data-grid";
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
 import { GridApi } from "../typeOverloads/reexports";
 import { useGridApiRef } from "../hooks/utils/useGridApiRef";
-import { useBasicDemoData } from "./test/utils/basic-data-service";
-// import { spy } from 'sinon';
+import { useBasicDemoData } from "./basic-data-service";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 const spy = jest.fn();

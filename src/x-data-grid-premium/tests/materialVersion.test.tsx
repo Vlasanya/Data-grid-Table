@@ -1,6 +1,6 @@
 import materialPackageJson from '@mui/material/package.json';
-import { checkMaterialVersion } from '../test/utils/checkMaterialVersion';
-import packageJson from '../../../../package.json';
+import { checkMaterialVersion } from './checkMaterialVersion';
+import packageJson from '../../../package.json';
 
 const modifiedPackageJson = {
   ...packageJson,

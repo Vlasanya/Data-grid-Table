@@ -1,10 +1,7 @@
 import * as React from "react";
-import { render, screen, within, act, waitFor } from "@testing-library/react";
-// import { expect } from "chai";
+import { render, screen, within, act, waitFor, fireEvent } from "@testing-library/react";
 import { getCell, getColumnHeaderCell, getColumnValues } from "./helperFn";
-// import { fireUserEvent } from "test/utils/fireUserEvent";
 import userEvent from "@testing-library/user-event";
-// import { SinonSpy, spy } from "sinon";
 import {
   GridRenderCellParams,
   GridGroupNode,
@@ -45,8 +42,6 @@ const baselineProps: DataGridPremiumProps = {
 };
 
 describe("<DataGridPremium /> - Aggregation", () => {
-  // const { render, clock } = createRenderer({ clock: "fake" });
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   function Test(props: Partial<DataGridPremiumProps>) {
@@ -61,25 +56,16 @@ describe("<DataGridPremium /> - Aggregation", () => {
 
   describe("Setting aggregation model", () => {
     describe("initialState: aggregation.model", () => {
-      // it("should allow to initialize aggregation", async () => {
-      //   render(
-      //     <Test initialState={{ aggregation: { model: { id: "max" } } }} />
-      //   );
-      //   await waitFor(() => {
-      //     const cellValues = screen
-      //       .getAllByRole("cell")
-      //       .map((cell) => cell.textContent);
-      //     expect(cellValues).toEqual([
-      //       "0",
-      //       "1",
-      //       "2",
-      //       "3",
-      //       "4",
-      //       "5",
-      //       "5" /* Agg */,
-      //     ]);
-      //   });
-      // });
+
+      it("should allow to initialize aggregation", async () => {
+        render(<Test initialState={{ aggregation: { model: { id: "max" } } }} />);
+        await waitFor(() => {
+          const cellValues = screen.getAllByText(/^\d+$/).map((cell) => cell.textContent);
+          expect(cellValues).toEqual(["0", "1", "2", "3", "4", "5", "5" /* Aggregated value */]);
+        }, { timeout: 3000 });
+      });
+           
+
       // it("should not react to initial state updates", async () => {
       //   const { rerender } = render(
       //     <Test initialState={{ aggregation: { model: { id: "max" } } }} />
@@ -119,25 +105,22 @@ describe("<DataGridPremium /> - Aggregation", () => {
     });
 
     describe("prop: aggregationModel", () => {
+
       it("should not call onAggregationModelChange on initialization or aggregationModel prop change", async () => {
         const onAggregationModelChange = jest.fn();
-
         const { rerender } = render(
           <Test
             aggregationModel={{ id: "max" }}
             onAggregationModelChange={onAggregationModelChange}
           />
         );
-
         expect(onAggregationModelChange).not.toHaveBeenCalled();
-
         rerender(
           <Test
             aggregationModel={{ id: "min" }}
             onAggregationModelChange={onAggregationModelChange}
           />
         );
-
         expect(onAggregationModelChange).not.toHaveBeenCalled();
       });
 
@@ -260,39 +243,31 @@ describe("<DataGridPremium /> - Aggregation", () => {
       });
 
       // See https://github.com/mui/mui-x/issues/10864
-      // it("should correctly handle changing aggregated column from non-editable to editable", async () => {
-      //   const column: GridColDef = {
-      //     field: "value",
-      //     type: "number",
-      //     editable: false,
-      //   };
-      //   const { rerender } = render(
-      //     <Test
-      //       columns={[column]}
-      //       rows={[
-      //         { id: 1, value: 1 },
-      //         { id: 2, value: 10 },
-      //       ]}
-      //       aggregationModel={{ value: "sum" }}
-      //     />
-      //   );
-
-      //   const cell = getCell(0, 0);
-
-      //   fireEvent.doubleClick(cell);
-      //   expect(cell.querySelector("input")).toEqual(null);
-
-      //   rerender(<Test columns={[{ ...column, editable: true }]} />);
-      //   fireEvent.doubleClick(cell);
-      //   expect(cell.querySelector("input")).not.toEqual(null);
-      //   userEvent.click(getCell(1, 0));
-
-      //   rerender(<Test columns={[{ ...column }]} />);
-      //   fireEvent.doubleClick(cell);
-      //   await waitFor(() => {
-      //     expect(cell.querySelector("input")).toEqual(null);
-      //   });
-      // });
+      it("should correctly handle changing aggregated column from non-editable to editable", async () => {
+        const column: GridColDef = { field: "value", type: "number", editable: false };
+        const { rerender } = render(
+          <Test
+            columns={[column]}
+            rows={[
+              { id: 1, value: 1 },
+              { id: 2, value: 10 },
+            ]}
+            aggregationModel={{ value: "sum" }}
+          />
+        );
+        const cell = getCell(0, 0);
+        fireEvent.keyDown(cell, { key: "Enter", code: "Enter" });
+        expect(cell.querySelector("input")).toBeNull();
+        rerender(<Test columns={[{ ...column, editable: true }]} />);
+        fireEvent.keyDown(cell, { key: "Enter", code: "Enter" });
+        expect(cell.querySelector("input")).not.toBeNull();
+        fireEvent.keyDown(cell.querySelector("input")!, { key: "Escape", code: "Escape" });
+        rerender(<Test columns={[column]} />);
+        await waitFor(() => {
+          fireEvent.keyDown(cell, { key: "Enter", code: "Enter" });
+          expect(cell.querySelector("input")).toBeNull();
+        });
+      });
     });
   });
 
@@ -359,14 +334,14 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //         aggregation: { model: { id: "max" } },
     //       }}
     //       defaultGroupingExpansionDepth={-1}
-    //       // Only group "Cat A" aggregated inline
     //       getAggregationPosition={(group) =>
     //         group?.groupingKey === "Cat A" ? "inline" : null
     //       }
     //     />
     //   );
     //   await waitFor(() => {
-    //     expect(getColumnValues(1)).toEqual([
+    //     const columnValues = getColumnValues(1);
+    //     expect(columnValues).toEqual([
     //       "4" /* Agg "Cat A" */,
     //       "0",
     //       "1",
@@ -377,8 +352,8 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //       "5",
     //     ]);
     //   });
-
-    //   // All groups aggregated inline except the root
+    
+    //   // Update props: all groups aggregated inline except the root
     //   rerender(
     //     <Test
     //       getAggregationPosition={(group: GridGroupNode) =>
@@ -386,9 +361,10 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //       }
     //     />
     //   );
-
+    
     //   await waitFor(() => {
     //     const columnValues = getColumnValues(1);
+    //     console.log("Values after first rerender:", columnValues); // Debugging line
     //     expect(columnValues).toEqual([
     //       "4" /* Agg "Cat A" */,
     //       "0",
@@ -399,9 +375,9 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //       "5" /* Agg "Cat B" */,
     //       "5",
     //     ]);
-    //   }, { timeout: 5000 });
-
-    //   // All groups aggregated in footer except the root
+    //   });
+    
+    //   // Update props: all groups aggregated in footer except the root
     //   rerender(
     //     <Test
     //       getAggregationPosition={(group: GridGroupNode) =>
@@ -409,8 +385,11 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //       }
     //     />
     //   );
+    
     //   await waitFor(() => {
-    //     expect(getColumnValues(1)).toEqual([
+    //     const columnValues = getColumnValues(1);
+    //     console.log("Values after second rerender:", columnValues); // Debugging line
+    //     expect(columnValues).toEqual([
     //       "",
     //       "0",
     //       "1",
@@ -423,35 +402,43 @@ describe("<DataGridPremium /> - Aggregation", () => {
     //       "5" /* Agg "Cat B" */,
     //     ]);
     //   });
-
+    
     //   // All groups aggregated on footer
     //   rerender(<Test getAggregationPosition={() => "footer"} />);
-    //   expect(getColumnValues(1)).toEqual([
-    //     "",
-    //     "0",
-    //     "1",
-    //     "2",
-    //     "3",
-    //     "4",
-    //     "4" /* Agg "Cat A" */,
-    //     "",
-    //     "5",
-    //     "5" /* Agg "Cat B" */,
-    //     "5" /* Agg root */,
-    //   ]);
-
-    //   // 0 group aggregated
+    //   await waitFor(() => {
+    //     const columnValues = getColumnValues(1);
+    //     console.log("Values after third rerender:", columnValues); // Debugging line
+    //     expect(columnValues).toEqual([
+    //       "",
+    //       "0",
+    //       "1",
+    //       "2",
+    //       "3",
+    //       "4",
+    //       "4" /* Agg "Cat A" */,
+    //       "",
+    //       "5",
+    //       "5" /* Agg "Cat B" */,
+    //       "5" /* Agg root */,
+    //     ]);
+    //   });
+    
+    //   // No group aggregation
     //   rerender(<Test getAggregationPosition={() => null} />);
-    //   expect(getColumnValues(1)).toEqual([
-    //     "",
-    //     "0",
-    //     "1",
-    //     "2",
-    //     "3",
-    //     "4",
-    //     "",
-    //     "5",
-    //   ]);
+    //   await waitFor(() => {
+    //     const columnValues = getColumnValues(1);
+    //     console.log("Values after fourth rerender:", columnValues); // Debugging line
+    //     expect(columnValues).toEqual([
+    //       "",
+    //       "0",
+    //       "1",
+    //       "2",
+    //       "3",
+    //       "4",
+    //       "",
+    //       "5",
+    //     ]);
+    //   });
     // });
   });
 

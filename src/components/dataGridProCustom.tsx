@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useState } from "react";
 import {
   GridColDef,
   GridPaginationModel,
@@ -85,6 +85,8 @@ const pageSizeOptions = [20, 40, 60];
 
 const DataGridProCustom: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [reRenderTrigger, setReRenderTrigger] = useState(false);
+  const [pinnedColumns, setPinnedColumns] = useState<{ right?: string[] }>({}); 
   const navigate = useNavigate();
 
   const fetchData = (
@@ -151,6 +153,13 @@ const DataGridProCustom: React.FC = () => {
     navigate("/swapi");
   };
 
+  const triggerReRender = () => {
+    setReRenderTrigger(!reRenderTrigger);
+    setPinnedColumns((prevPinnedColumns) =>
+      prevPinnedColumns.right ? {} : { right: ["__check__"] }
+    );
+  };
+
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 120 },
     { field: "name", headerName: "Name", width: 120 },
@@ -185,8 +194,9 @@ const DataGridProCustom: React.FC = () => {
         rowCount={state.rowCount}
         paginationMode="server"
         rowGroupingColumnMode="multiple"
+        // pinnedColumns={pinnedColumns}
         slots={{
-          toolbar: () => <CustomToolbar rowCount={state.rowCount} />,
+          toolbar: () => <CustomToolbar rowCount={state.rowCount} onReRender={triggerReRender} />,
           footer: () => (
             <Box
               sx={{

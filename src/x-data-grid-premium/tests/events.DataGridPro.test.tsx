@@ -1,5 +1,4 @@
 import * as React from "react";
-// import { createRenderer, fireEvent, screen, act } from '@mui/internal-test-utils';
 import {
   render,
   screen,
@@ -7,7 +6,6 @@ import {
   act,
   waitFor,
 } from "@testing-library/react";
-// import { expect } from 'chai';
 import {
   GridColumnHeaderParams,
   GridRowParams,
@@ -18,18 +16,15 @@ import {
   GridActionsCellItem,
   GridEventListener,
 } from "@mui/x-data-grid";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-import { getCell, getColumnHeaderCell } from "../helperFn";
-// import { spy } from 'sinon';
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { getCell, getColumnHeaderCell } from "./helperFn";
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
 describe("<DataGridPro /> - Events params", () => {
-  // const { render, clock } = createRenderer();
-
   const baselineProps: { rows: GridRowsProp; columns: GridColDef[] } = {
     rows: [
       {

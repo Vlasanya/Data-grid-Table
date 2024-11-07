@@ -1,22 +1,17 @@
 import * as React from "react";
-// import { expect } from 'chai';
-// import { spy } from 'sinon';
 import {
   GridRenderEditCellParams,
   GridValueSetter,
   GridPreProcessEditCellProps,
 } from "@mui/x-data-grid";
 import Portal from "@mui/material/Portal";
-import { getBasicGridData } from "../test/utils/basic-data-service";
-// import { createRenderer, fireEvent, act, screen } from '@mui/internal-test-utils';
-import { getCell, getRow, spyApi } from "../helperFn";
-// import { userEvent } from 'test/utils/userEvent';
+import { getBasicGridData } from "./basic-data-service";
+import { getCell, getRow, spyApi } from "./helperFn";
 import userEvent from "@testing-library/user-event";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-// import { createRenderer, act } from '@mui/internal-test-utils';
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
 import {
   render,
   fireEvent,
@@ -27,8 +22,6 @@ import {
 import { GridRowModes } from "@mui/x-data-grid";
 
 describe("<DataGridPremium /> - Row editing", () => {
-  // const { render, clock } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   const defaultData = getBasicGridData(4, 4);
@@ -1017,37 +1010,52 @@ describe("<DataGridPremium /> - Row editing", () => {
         expect(getCell(0, 1)).toHaveFocus();
       });
 
-      // it("should keep in edit mode the cells that entered edit mode while processRowUpdate is called", async () => {
-      //   const onRowModesModelChange = jest.fn();
-      //   let resolveCallback: (() => void) | undefined;
-      //   const processRowUpdate = (newRow: Record<string, unknown>) =>
-      //     new Promise<void>((resolve) => {
-      //       resolveCallback = resolve;
-      //     });
-      //   render(
-      //     <TestCase
-      //       processRowUpdate={processRowUpdate}
-      //       onRowModesModelChange={onRowModesModelChange}
-      //     />
-      //   );
-      //   act(() => apiRef.current.startRowEditMode({ id: 0, fieldToFocus: "price1M" }));
-      //   await act(async () => {
-      //     apiRef.current.setEditCellValue({
-      //       id: 0,
-      //       field: "currencyPair",
-      //       value: "USD GBP",
-      //     });
-      //   });
-      //   act(() => apiRef.current.stopRowEditMode({ id: 0, field: "price1M" }));
-      //   await new Promise((resolve) => setTimeout(resolve, 10));
-      //   expect(onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0])
-      //     .toHaveProperty("0", { mode: "edit", field: "price1M" });
-      //   act(() => resolveCallback!());
-      //   await act(() => Promise.resolve());
-      //   expect(onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0])
-      //     .toHaveProperty("0", { mode: "view", field: "price1M" });
-      // });      
-      
+      it("should keep in edit mode the cells that entered edit mode while processRowUpdate is called", async () => {
+        const onRowModesModelChange = jest.fn();
+        let resolveCallback: () => void;
+        const processRowUpdate = (newRow: any) =>
+          new Promise((resolve) => {
+            resolveCallback = () => resolve(newRow);
+          });
+        render(
+          <TestCase
+            processRowUpdate={processRowUpdate}
+            onRowModesModelChange={onRowModesModelChange}
+          />
+        );
+        act(() => apiRef.current.startRowEditMode({ id: 0, fieldToFocus: "price1M" }));
+        
+        await act(async () => {
+          return apiRef.current.setEditCellValue({
+            id: 0,
+            field: "currencyPair",
+            value: "USD GBP",
+          });
+        });
+        act(() => apiRef.current.stopRowEditMode({ id: 0, field: "price1M" }));
+        expect(
+          onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0]
+        ).toEqual({
+          0: { mode: "view", field: "price1M" },
+        });
+        act(() => apiRef.current.startRowEditMode({ id: 1, fieldToFocus: "price1M" }));
+        expect(onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0]).toHaveProperty("0");
+        expect(onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0]).toHaveProperty("1");
+        expect(
+          onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0][1]
+        ).toEqual({
+          mode: "edit",
+          fieldToFocus: "price1M",
+        });
+        resolveCallback!();
+        await act(() => Promise.resolve());
+        expect(
+          onRowModesModelChange.mock.calls[onRowModesModelChange.mock.calls.length - 1][0]
+        ).toEqual({
+          1: { mode: "edit", fieldToFocus: "price1M" },
+        });
+      });
+
       describe("with pending value mutation", () => {
         jest.useFakeTimers();
 
@@ -1762,22 +1770,26 @@ describe("<DataGridPremium /> - Row editing", () => {
         expect(getCell(0, 1).textContent).toEqual("USDGBP");
       });
 
-      // it("should move focus to the cell that is set in cellToFocusAfter", async () => {
-      //   const { rerender } = render(
-      //     <TestCase rowModesModel={{ 0: { mode: GridRowModes.Edit } }} />
-      //   );
-      //   await act(async () => {
-      //     apiRef.current.setEditCellValue({
-      //       id: 0,
-      //       field: "currencyPair",
-      //       value: "USD GBP",
-      //     });
-      //   });
-      //   rerender(
-      //     <TestCase rowModesModel={{ 0: { mode: GridRowModes.View, cellToFocusAfter: "below" } }} />
-      //   );
-      //   await waitFor(() => expect(getCell(1, 1)).toHaveFocus());
-      // });      
+      it("should move focus to the cell that is set in cellToFocusAfter", async () => {
+        const { rerender } = render(
+          <TestCase rowModesModel={{ 0: { mode: GridRowModes.Edit } }} />,
+        );
+        await act(async () => {
+          await apiRef.current.setEditCellValue({ id: 0, field: 'currencyPair', value: 'USD GBP' });
+        });
+        rerender(
+          <TestCase 
+            rowModesModel={{ 
+              0: { 
+                mode: GridRowModes.View, 
+                cellToFocusAfter: 'below', 
+                field: 'currencyPair' as string 
+              } as any
+            }} 
+          />
+        );
+        expect(getCell(1, 1)).toHaveFocus();
+      });
     });
 
     it(`should publish 'rowModesModelChange' when the model changes`, () => {

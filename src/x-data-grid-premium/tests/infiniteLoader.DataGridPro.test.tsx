@@ -1,22 +1,12 @@
 import * as React from 'react';
-// import { act, createRenderer, waitFor } from '@mui/internal-test-utils';
 import { render, fireEvent, act, waitFor } from "@testing-library/react";
-// import { expect } from 'chai';
-// import { DataGridPro } from '@mui/x-data-grid-pro';
 import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
-// import { spy, restore } from 'sinon';
 import { getColumnValues, sleep } from './helperFn';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 const spy = jest.fn();
 
 describe('<DataGridPro /> - Infnite loader', () => {
-//   afterEach(() => {
-//     restore();
-//   });
-
-//   const { render } = createRenderer();
-
   it('should call `onRowsScrollEnd` when viewport scroll reaches the bottom', async function test() {
     if (isJSDOM) {
       return; // Needs layout

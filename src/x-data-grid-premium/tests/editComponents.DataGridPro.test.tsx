@@ -10,7 +10,6 @@ import {
   renderEditInputCell,
   renderEditSingleSelectCell,
 } from "@mui/x-data-grid-pro";
-// import { act, createRenderer, fireEvent, screen, waitFor, within } from '@mui/internal-test-utils';
 import {
   render,
   screen,
@@ -19,10 +18,7 @@ import {
   waitFor,
   fireEvent,
 } from "@testing-library/react";
-// import { expect } from 'chai';
-import { getCell, spyApi } from "../helperFn";
-// import { fireUserEvent } from 'test/utils/fireUserEvent';
-// import { spy, SinonSpy } from 'sinon';
+import { getCell, spyApi } from "./helperFn";
 import userEvent from "@testing-library/user-event";
 
 /**

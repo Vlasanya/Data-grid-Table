@@ -1,29 +1,21 @@
 import * as React from "react";
-// import { expect } from "chai";
-// import { spy } from "sinon";
 import {
-  GridRenderEditCellParams, //x
-  GridValueSetter, // x
+  GridRenderEditCellParams,
+  GridValueSetter,
   GridPreProcessEditCellProps,
   GridCellProps,
   GridCellModes,
 } from "@mui/x-data-grid";
-import { DataGridPremium } from "../../DataGridPremium/DataGridPremium";
-import { DataGridPremiumProps } from "../../models/dataGridPremiumProps";
-import { getBasicGridData } from "../test/utils/basic-data-service";
-// import { createRenderer, fireEvent, act } from '@mui/internal-test-utils';
+import { DataGridPremium } from "../DataGridPremium/DataGridPremium";
+import { DataGridPremiumProps } from "../models/dataGridPremiumProps";
+import { getBasicGridData } from "./basic-data-service";
 import { render, act, fireEvent } from "@testing-library/react";
-import { getCell, spyApi } from "../helperFn";
-// import { fireUserEvent } from 'test/utils/fireUserEvent';
+import { getCell, spyApi } from "./helperFn";
 import userEvent from "@testing-library/user-event";
-import { GridApi } from "../../typeOverloads/reexports";
-import { useGridApiRef } from "../../hooks/utils/useGridApiRef";
-
-const spy = jest.fn();
+import { GridApi } from "../typeOverloads/reexports";
+import { useGridApiRef } from "../hooks/utils/useGridApiRef";
 
 describe("<DataGridPro /> - Cell editing", () => {
-  // const { render, clock } = createRenderer();
-
   let apiRef: React.MutableRefObject<GridApi>;
 
   const defaultData = getBasicGridData(4, 2);
@@ -98,7 +90,8 @@ describe("<DataGridPro /> - Cell editing", () => {
         act(() =>
           apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
         );
-        const lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+        const lastCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastCallArgs.value).toEqual("USDGBP");
         expect(lastCallArgs.error).toEqual(false);
         expect(lastCallArgs.isProcessingProps).toEqual(false);
@@ -116,7 +109,8 @@ describe("<DataGridPro /> - Cell editing", () => {
             deleteValue: true,
           })
         );
-        const lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+        const lastCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastCallArgs.value).toEqual("");
         expect(lastCallArgs.error).toEqual(false);
         expect(lastCallArgs.isProcessingProps).toEqual(false);
@@ -126,16 +120,17 @@ describe("<DataGridPro /> - Cell editing", () => {
     describe("setEditCellValue", () => {
       it("should update the value prop given to renderEditCell", async () => {
         const renderEditCell = jest.fn(defaultRenderEditCell);
-      
+
         render(<TestCase columnProps={{ renderEditCell }} />);
-      
+
         act(() =>
           apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
         );
-      
-        let lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+
+        let lastCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastCallArgs.value).toEqual("USDGBP");
-      
+
         await act(async () => {
           await apiRef.current.setEditCellValue({
             id: 0,
@@ -143,10 +138,11 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "usdgbp",
           });
         });
-      
-        lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+
+        lastCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastCallArgs.value).toEqual("usdgbp");
-      });      
+      });
 
       // it("should pass to renderEditCell the row with the value updated", async () => {
       //   const valueSetter: GridValueSetter = (value: string, row) => ({
@@ -169,7 +165,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   );
       //   lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
       //   expect(lastCallArgs.value).toEqual("usdgbp");
-      // });      
+      // });
 
       it("should pass the new value through the value parser if defined", async () => {
         const valueParser = jest.fn((value: any) => value.toLowerCase());
@@ -188,9 +184,10 @@ describe("<DataGridPro /> - Cell editing", () => {
             })
         );
         expect(valueParser).toHaveBeenCalledTimes(1);
-        const lastRenderEditCellCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+        const lastRenderEditCellCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastRenderEditCellCallArgs.value).toEqual("usd gbp");
-      });      
+      });
 
       it("should return true if no preProcessEditCellProps is defined", async () => {
         render(<TestCase />);
@@ -210,10 +207,16 @@ describe("<DataGridPro /> - Cell editing", () => {
       });
 
       it("should set isProcessingProps to true before calling preProcessEditCellProps", async () => {
-        const preProcessEditCellProps = jest.fn(({ props }: GridPreProcessEditCellProps) => props);
+        const preProcessEditCellProps = jest.fn(
+          ({ props }: GridPreProcessEditCellProps) => props
+        );
         const renderEditCell = jest.fn(defaultRenderEditCell);
-        render(<TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />);
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+        render(
+          <TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />
+        );
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
         let promise: Promise<boolean> | null = null;
         act(() => {
           promise = apiRef.current.setEditCellValue({
@@ -222,15 +225,20 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "USD GBP",
           }) as Promise<boolean>;
         });
-        const lastRenderEditCellCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
+        const lastRenderEditCellCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0];
         expect(lastRenderEditCellCallArgs.isProcessingProps).toEqual(true);
         await act(() => promise!);
-      });      
+      });
 
       it("should call preProcessEditCellProps with the correct params", async () => {
-        const preProcessEditCellProps = jest.fn(({ props }: GridPreProcessEditCellProps) => props);
+        const preProcessEditCellProps = jest.fn(
+          ({ props }: GridPreProcessEditCellProps) => props
+        );
         render(<TestCase columnProps={{ preProcessEditCellProps }} />);
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
         await act(async () => {
           await apiRef.current.setEditCellValue({
             id: 0,
@@ -238,7 +246,10 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "USD GBP",
           });
         });
-        const lastCallArgs = preProcessEditCellProps.mock.calls[preProcessEditCellProps.mock.calls.length - 1][0];
+        const lastCallArgs =
+          preProcessEditCellProps.mock.calls[
+            preProcessEditCellProps.mock.calls.length - 1
+          ][0];
         expect(lastCallArgs.id).toEqual(0);
         expect(lastCallArgs.row).toEqual(defaultData.rows[0]);
         expect(lastCallArgs.hasChanged).toEqual(true);
@@ -249,13 +260,14 @@ describe("<DataGridPro /> - Cell editing", () => {
           changeReason: "setEditCellValue",
         });
       });
-      
 
       it("should not publish onCellEditStop if field has error", async () => {
-        const preProcessEditCellProps = jest.fn(({ props }: GridPreProcessEditCellProps) => ({
-          ...props,
-          error: true,
-        }));
+        const preProcessEditCellProps = jest.fn(
+          ({ props }: GridPreProcessEditCellProps) => ({
+            ...props,
+            error: true,
+          })
+        );
         const handleEditCellStop = jest.fn();
         render(
           <TestCase
@@ -263,7 +275,9 @@ describe("<DataGridPro /> - Cell editing", () => {
             columnProps={{ preProcessEditCellProps }}
           />
         );
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
         await act(async () => {
           await apiRef.current.setEditCellValue({
             id: 0,
@@ -274,19 +288,27 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 1);
         cell.focus();
         fireEvent.keyDown(cell, { key: "Enter" });
-        expect(handleEditCellStop.mock.calls.length).toEqual(0);
-      });      
+        expect(handleEditCellStop).toHaveBeenCalledTimes(0);
+      });
 
       it("should pass to renderEditCell the props returned by preProcessEditCellProps", async () => {
-        const preProcessEditCellProps = ({ props }: GridPreProcessEditCellProps) => ({
+        const preProcessEditCellProps = ({
+          props,
+        }: GridPreProcessEditCellProps) => ({
           ...props,
           foo: "bar",
         });
         const renderEditCell = jest.fn(defaultRenderEditCell);
-        render(<TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />);
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].foo).toBeUndefined();
-      
+        render(
+          <TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />
+        );
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].foo
+        ).toBeUndefined();
+
         await act(async () =>
           apiRef.current.setEditCellValue({
             id: 0,
@@ -294,18 +316,29 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "USD GBP",
           })
         );
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].foo).toEqual("bar");
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].foo
+        ).toEqual("bar");
       });
-      
+
       it("should not pass to renderEditCell the value returned by preProcessEditCellProps", async () => {
-        const preProcessEditCellProps = ({ props }: GridPreProcessEditCellProps) => ({
+        const preProcessEditCellProps = ({
+          props,
+        }: GridPreProcessEditCellProps) => ({
           ...props,
           value: "foobar",
         });
         const renderEditCell = jest.fn(defaultRenderEditCell);
-        render(<TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />);
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].value).toEqual("USDGBP");
+        render(
+          <TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />
+        );
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0]
+            .value
+        ).toEqual("USDGBP");
         await act(async () =>
           apiRef.current.setEditCellValue({
             id: 0,
@@ -313,14 +346,23 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "USD GBP",
           })
         );
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].value).toEqual("USD GBP");
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0]
+            .value
+        ).toEqual("USD GBP");
       });
-      
+
       it("should set isProcessingProps to false after calling preProcessEditCellProps", async () => {
-        const preProcessEditCellProps = ({ props }: GridPreProcessEditCellProps) => props;
+        const preProcessEditCellProps = ({
+          props,
+        }: GridPreProcessEditCellProps) => props;
         const renderEditCell = jest.fn(defaultRenderEditCell);
-        render(<TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />);
-        act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+        render(
+          <TestCase columnProps={{ preProcessEditCellProps, renderEditCell }} />
+        );
+        act(() =>
+          apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+        );
         let promise: Promise<boolean> | null = null;
         act(() => {
           promise = apiRef.current.setEditCellValue({
@@ -329,10 +371,16 @@ describe("<DataGridPro /> - Cell editing", () => {
             value: "USD GBP",
           }) as Promise<boolean>;
         });
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].isProcessingProps).toEqual(true);
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0]
+            .isProcessingProps
+        ).toEqual(true);
         await act(() => promise!);
-        expect(renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0].isProcessingProps).toEqual(false);
-      });      
+        expect(
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1][0]
+            .isProcessingProps
+        ).toEqual(false);
+      });
 
       it("should return false if preProcessEditCellProps sets an error", async () => {
         const preProcessEditCellProps = ({
@@ -397,9 +445,13 @@ describe("<DataGridPro /> - Cell editing", () => {
           jest.useFakeTimers();
           const renderEditCell = jest.fn(() => <input />);
           render(<TestCase columnProps={{ renderEditCell }} />);
-          act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+          act(() =>
+            apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+          );
           if (renderEditCell.mock.calls.length > 0) {
-            const lastCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1] as unknown as [GridRenderEditCellParams];
+            const lastCallArgs = renderEditCell.mock.calls[
+              renderEditCell.mock.calls.length - 1
+            ] as unknown as [GridRenderEditCellParams];
             expect(lastCallArgs[0].value).toEqual("USDGBP");
           }
           renderEditCell.mockClear();
@@ -419,12 +471,13 @@ describe("<DataGridPro /> - Cell editing", () => {
           expect(renderEditCell).not.toHaveBeenCalled();
           jest.advanceTimersByTime(100);
           if (renderEditCell.mock.calls.length > 0) {
-            const finalCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1] as unknown as [GridRenderEditCellParams];
+            const finalCallArgs = renderEditCell.mock.calls[
+              renderEditCell.mock.calls.length - 1
+            ] as unknown as [GridRenderEditCellParams];
             expect(finalCallArgs[0].value).toEqual("USD GBP");
           }
           jest.useRealTimers();
         });
-        
       });
     });
 
@@ -662,7 +715,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         await act(() => Promise.resolve());
         expect(processRowUpdate).toHaveBeenCalledTimes(1);
         expect(getCell(0, 1).textContent).toEqual("USD-GBP");
-      });      
+      });
 
       it("should call processRowUpdate with the new and old row", async () => {
         const processRowUpdate = jest.fn((newRow: any, oldRow: any) => ({
@@ -709,19 +762,22 @@ describe("<DataGridPro /> - Cell editing", () => {
           apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
         );
         await act(async () => {
-          await apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" });
+          await apiRef.current.stopCellEditMode({
+            id: 0,
+            field: "currencyPair",
+          });
         });
         expect(onProcessRowUpdateError).toHaveBeenCalledTimes(1);
         expect(getCell(0, 1)).toHaveClass("MuiDataGrid-cell--editing");
       });
-      
+
       it("should call onProcessRowUpdateError if processRowUpdate throws an error", () => {
         const error = new Error("Something went wrong");
         const processRowUpdate = () => {
           throw error;
         };
         const onProcessRowUpdateError = jest.fn();
-      
+
         render(
           <TestCase
             processRowUpdate={processRowUpdate}
@@ -732,12 +788,13 @@ describe("<DataGridPro /> - Cell editing", () => {
           apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
         );
         try {
-          act(() => apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" }));
-        } catch (e) {
-        }
+          act(() =>
+            apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" })
+          );
+        } catch (e) {}
         expect(onProcessRowUpdateError).toHaveBeenCalledWith(error);
       });
-      
+
       it("should call onProcessRowUpdateError if processRowUpdate rejects", async () => {
         const error = new Error("Something went wrong");
         const processRowUpdate = async () => {
@@ -755,9 +812,11 @@ describe("<DataGridPro /> - Cell editing", () => {
         );
         await act(async () => {
           try {
-            await apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" });
-          } catch (e) {
-          }
+            await apiRef.current.stopCellEditMode({
+              id: 0,
+              field: "currencyPair",
+            });
+          } catch (e) {}
         });
         expect(onProcessRowUpdateError).toHaveBeenCalledWith(error);
       });
@@ -796,7 +855,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   expect(valueSetter.mock.calls[valueSetter.mock.calls.length - 1][1]).toEqual(
       //     defaultData.rows[0]
       //   );
-      // });      
+      // });
 
       it("should move focus to the cell below when cellToFocusAfter=below", async () => {
         const renderEditCellProp = (props: GridCellProps) => (
@@ -879,7 +938,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       });
 
       it("should run all pending value mutations before calling processRowUpdate", async () => {
-        const processRowUpdate = jest.fn(() => new Promise(() => {}));
+        const processRowUpdate = jest.fn();
         const renderEditCell = jest.fn(defaultRenderEditCell);
         render(
           <TestCase
@@ -890,26 +949,31 @@ describe("<DataGridPro /> - Cell editing", () => {
         act(() =>
           apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
         );
-        await act(async () => {
-          apiRef.current.setEditCellValue({
-            id: 0,
-            field: "currencyPair",
-            value: "USD GBP",
-            debounceMs: 100,
-          });
-        });
-        jest.advanceTimersByTime(100);
+        await act(
+          () =>
+            new Promise<void>((resolve) => {
+              apiRef.current.setEditCellValue({
+                id: 0,
+                field: "currencyPair",
+                value: "USD GBP",
+                debounceMs: 100,
+              });
+              resolve();
+            })
+        );
         act(() =>
           apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" })
         );
-        expect(renderEditCell).toHaveBeenCalled();
-        expect(processRowUpdate).toHaveBeenCalled();
-        const lastRenderCallArgs = renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1]?.[0];
-        const lastProcessUpdateCallArgs = processRowUpdate.mock.calls[processRowUpdate.mock.calls.length - 1]?.[0] as { currencyPair: string } | undefined;
-        expect(lastRenderCallArgs?.value).toEqual("USD GBP");
-        expect(lastProcessUpdateCallArgs?.currencyPair).toEqual("USD GBP");
-      });      
-          
+        const lastRenderEditCellCallArgs =
+          renderEditCell.mock.calls[renderEditCell.mock.calls.length - 1]?.[0];
+        const lastProcessRowUpdateCallArgs =
+          processRowUpdate.mock.calls[
+            processRowUpdate.mock.calls.length - 1
+          ]?.[0];
+        expect(lastRenderEditCellCallArgs?.value).toEqual("USD GBP");
+        expect(lastProcessRowUpdateCallArgs?.currencyPair).toEqual("USD GBP");
+      });
+
       // it("should keep in edit mode the cells that entered edit mode while processRowUpdate is called", async () => {
       //   const onCellModesModelChange = jest.fn();
       //   let resolveCallback: () => void;
@@ -917,18 +981,18 @@ describe("<DataGridPro /> - Cell editing", () => {
       //     new Promise((resolve) => {
       //       resolveCallback = () => resolve(newRow);
       //     });
-      
+
       //   render(
       //     <TestCase
       //       processRowUpdate={processRowUpdate}
       //       onCellModesModelChange={onCellModesModelChange}
       //     />
       //   );
-      
+
       //   act(() =>
       //     apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
       //   );
-      
+
       //   await act(async () =>
       //     apiRef.current.setEditCellValue({
       //       id: 0,
@@ -936,39 +1000,39 @@ describe("<DataGridPro /> - Cell editing", () => {
       //       value: "USD GBP",
       //     })
       //   );
-      
+
       //   act(() =>
       //     apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" })
       //   );
-      
+
       //   // Очікуємо, що режим залишиться "edit" до завершення processRowUpdate
       //   expect(onCellModesModelChange.mock.calls[0]?.[0]).toEqual({
       //     0: { currencyPair: { mode: "edit" } },
       //   });
-      
+
       //   act(() =>
       //     apiRef.current.startCellEditMode({ id: 1, field: "currencyPair" })
       //   );
-      
+
       //   const lastCallKeys = Object.keys(
       //     onCellModesModelChange.mock.calls[
       //       onCellModesModelChange.mock.calls.length - 1
       //     ]?.[0] || {}
       //   );
-      
+
       //   expect(lastCallKeys).toEqual(["0", "1"]);
-      
+
       //   const lastCall = onCellModesModelChange.mock.calls[onCellModesModelChange.mock.calls.length - 1]?.[0];
       //   if (lastCall && lastCall["1"]) {
       //     delete lastCall.api;
       //   }
-      
+
       //   expect(lastCall["1"]).toEqual({
       //     currencyPair: { mode: "edit" },
       //   });
       //   resolveCallback!();
       //   await act(() => Promise.resolve());
-      
+
       //   expect(onCellModesModelChange.mock.calls[onCellModesModelChange.mock.calls.length - 1]?.[0]).toEqual({
       //     0: { currencyPair: { mode: "view" } },
       //     1: { currencyPair: { mode: "edit" } },
@@ -996,7 +1060,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         apiRef.current.subscribeEvent("cellEditStart", listener);
         const cell = getCell(0, 0);
         fireEvent.doubleClick(cell);
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
       });
 
       it("should call startCellEditMode", () => {
@@ -1007,7 +1071,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         );
         const cell = getCell(0, 1);
         fireEvent.doubleClick(cell);
-        expect(spiedStartCellEditMode.mock.calls.length).toEqual(1);
+        expect(spiedStartCellEditMode).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -1031,7 +1095,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: " " });
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
       });
     });
     describe("by pressing a number", () => {
@@ -1068,7 +1132,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 0);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "Enter" });
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
       });
 
       // it("should call startCellEditMode", async () => {
@@ -1082,7 +1146,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   });
       //   expect(spiedStartCellEditMode).toHaveBeenCalledTimes(1);
       //   spiedStartCellEditMode.mockRestore();
-      // });      
+      // });
     });
 
     describe("by pressing Delete", () => {
@@ -1096,7 +1160,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener.mock.calls[0][0].reason).toEqual("deleteKeyDown");
       });
-      
+
       it(`should not publish 'cellEditStart' if the cell is not editable`, () => {
         render(<TestCase />);
         const listener = jest.fn();
@@ -1104,7 +1168,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 0);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "Delete" });
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
       });
 
       // it("should call startCellEditMode on Delete key press", () => {
@@ -1131,13 +1195,16 @@ describe("<DataGridPro /> - Cell editing", () => {
       //     field: "currencyPair",
       //     deleteValue: true,
       //   });
-      // });                
+      // });
     });
 
     describe("by pressing a printable character", () => {
       it("should call startCellEditMode on 'a' key press", () => {
         render(<TestCase />);
-        const spiedStartCellEditMode = spyApi(apiRef.current, "startCellEditMode");
+        const spiedStartCellEditMode = spyApi(
+          apiRef.current,
+          "startCellEditMode"
+        );
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "a" });
@@ -1151,11 +1218,12 @@ describe("<DataGridPro /> - Cell editing", () => {
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "a" });
         const cellEditStartCall = spiedCellEditStart.mock.calls.find(
-          ([eventName]: [string, { reason?: string }]) => eventName === "cellEditStart"
+          ([eventName]: [string, { reason?: string }]) =>
+            eventName === "cellEditStart"
         );
         expect(cellEditStartCall).toBeDefined();
         expect(cellEditStartCall![1].reason).toEqual("printableKeyDown");
-      });      
+      });
 
       it(`should not publish 'cellEditStart' if the cell is not editable`, () => {
         render(<TestCase />);
@@ -1164,7 +1232,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 0);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "a" }); // A
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
       });
 
       ["ctrlKey", "metaKey"].forEach((key) => {
@@ -1175,7 +1243,7 @@ describe("<DataGridPro /> - Cell editing", () => {
           const cell = getCell(0, 1);
           userEvent.click(cell);
           fireEvent.keyDown(cell, { key: "a", [key]: true }); // for example Ctrl + A, copy
-          expect(listener.mock.calls.length).toEqual(0);
+          expect(listener).toHaveBeenCalledTimes(0);
         });
       });
 
@@ -1186,7 +1254,7 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "a", shiftKey: true }); // Print A in uppercase
-        expect(listener.mock.calls.length).toEqual(1);
+        expect(listener).toHaveBeenCalledTimes(1);
       });
 
       // it("should call startCellEditMode if the paste shortcut is pressed", () => {
@@ -1196,7 +1264,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   userEvent.click(cell);
       //   fireEvent.keyDown(cell, { key: "v", ctrlKey: true });
       //   expect(spiedStartCellEditMode.callCount).toEqual(1);
-      // });          
+      // });
 
       it(`should call startCellEditMode if a special character on macOS is pressed`, () => {
         render(<TestCase />);
@@ -1205,13 +1273,13 @@ describe("<DataGridPro /> - Cell editing", () => {
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.keyDown(cell, { key: "π", altKey: true }); // ⌥ Option + P
-        expect(listener.mock.calls.length).toEqual(1);
+        expect(listener).toHaveBeenCalledTimes(1);
       });
 
       // it("should empty the cell on key press", () => {
       //   render(<TestCase />);
       //   const spiedStartCellEditMode = spyApi(apiRef.current, "startCellEditMode");
-      
+
       //   const cell = getCell(0, 1);
       //   userEvent.click(cell);
       //   fireEvent.keyDown(cell, { key: "a" });
@@ -1232,12 +1300,12 @@ describe("<DataGridPro /> - Cell editing", () => {
         const input = cell.querySelector("input")!;
         fireEvent.change(input, { target: { value: "あ" } });
         fireEvent.keyDown(cell, { key: "Enter", keyCode: 229 });
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
         fireEvent.keyDown(cell, { key: "Enter", keyCode: 13 });
-        expect(listener.mock.calls.length).toEqual(1);
+        expect(listener).toHaveBeenCalledTimes(1);
         expect(input.value).toEqual("あ");
         expect(listener.mock.calls[0][0].reason).toEqual("enterKeyDown");
-      });      
+      });
 
       it("should ignore keydown event until the IME is confirmed with multiple letters", () => {
         render(<TestCase />);
@@ -1248,12 +1316,12 @@ describe("<DataGridPro /> - Cell editing", () => {
         const input = cell.querySelector("input")!;
         fireEvent.change(input, { target: { value: "ありがとう" } });
         fireEvent.keyDown(cell, { key: "Enter", keyCode: 229 });
-        expect(listener.mock.calls.length).toEqual(0);
+        expect(listener).toHaveBeenCalledTimes(0);
         fireEvent.keyDown(cell, { key: "Enter", keyCode: 13 });
-        expect(listener.mock.calls.length).toEqual(1);
+        expect(listener).toHaveBeenCalledTimes(1);
         expect(input.value).toEqual("ありがとう");
         expect(listener.mock.calls[0][0].reason).toEqual("enterKeyDown");
-      });      
+      });
     });
   });
 
@@ -1272,7 +1340,10 @@ describe("<DataGridPro /> - Cell editing", () => {
 
       it("should call stopCellEditMode with ignoreModifications=false and cellToFocusAfter=undefined", () => {
         render(<TestCase />);
-        const spiedStopCellEditMode = spyApi(apiRef.current, "stopCellEditMode");
+        const spiedStopCellEditMode = spyApi(
+          apiRef.current,
+          "stopCellEditMode"
+        );
         fireEvent.doubleClick(getCell(0, 1));
         userEvent.click(getCell(1, 1));
         expect(spiedStopCellEditMode).toHaveBeenCalledTimes(1);
@@ -1318,7 +1389,10 @@ describe("<DataGridPro /> - Cell editing", () => {
 
       it("should call stopCellEditMode with ignoreModifications=true and cellToFocusAfter=undefined", () => {
         render(<TestCase />);
-        const spiedStopCellEditMode = spyApi(apiRef.current, "stopCellEditMode");
+        const spiedStopCellEditMode = spyApi(
+          apiRef.current,
+          "stopCellEditMode"
+        );
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.doubleClick(cell);
@@ -1330,7 +1404,7 @@ describe("<DataGridPro /> - Cell editing", () => {
           cellToFocusAfter: undefined,
           ignoreModifications: true,
         });
-      });      
+      });
     });
 
     describe("by pressing Enter", () => {
@@ -1345,12 +1419,15 @@ describe("<DataGridPro /> - Cell editing", () => {
         fireEvent.keyDown(cell, { key: "Enter" });
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener.mock.calls[0][0].reason).toEqual("enterKeyDown");
-      });   
+      });
 
       it("should call stopCellEditMode with ignoreModifications=false and cellToFocusAfter=below", () => {
         render(<TestCase />);
-        const spiedStopCellEditMode = spyApi(apiRef.current, "stopCellEditMode");
-      
+        const spiedStopCellEditMode = spyApi(
+          apiRef.current,
+          "stopCellEditMode"
+        );
+
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.doubleClick(cell);
@@ -1368,7 +1445,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   const preProcessEditCellProps = () => new Promise(() => {});
       //   render(<TestCase columnProps={{ preProcessEditCellProps }} />);
       //   const spiedStopCellEditMode = spyApi(apiRef.current, "stopCellEditMode");
-      
+
       //   const cell = getCell(0, 1);
       //   userEvent.click(cell); // Enter edit mode
       //   fireEvent.doubleClick(cell);
@@ -1382,7 +1459,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   fireEvent.keyDown(cell, { key: "Enter" });
       //   expect(spiedStopCellEditMode).toHaveBeenCalledTimes(1);
       //   expect(spiedStopCellEditMode.mock.calls[0][0].ignoreModifications).toEqual(false);
-      // });      
+      // });
     });
 
     describe("by pressing Tab", () => {
@@ -1397,11 +1474,14 @@ describe("<DataGridPro /> - Cell editing", () => {
         fireEvent.keyDown(cell, { key: "Tab" });
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener.mock.calls[0][0].reason).toEqual("tabKeyDown");
-      });      
+      });
 
       it("should call stopCellEditMode with ignoreModifications=false and cellToFocusAfter=right", () => {
         render(<TestCase />);
-        const spiedStopCellEditMode = spyApi(apiRef.current, "stopCellEditMode");
+        const spiedStopCellEditMode = spyApi(
+          apiRef.current,
+          "stopCellEditMode"
+        );
         const cell = getCell(0, 1);
         userEvent.click(cell);
         fireEvent.doubleClick(cell);
@@ -1432,7 +1512,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       //   fireEvent.keyDown(cell, { key: "Tab" });
       //   expect(spiedStopCellEditMode).toHaveBeenCalledTimes(1);
       //   expect(spiedStopCellEditMode.mock.calls[0][0].ignoreModifications).toEqual(false);
-      // });      
+      // });
     });
   });
 
@@ -1545,7 +1625,7 @@ describe("<DataGridPro /> - Cell editing", () => {
     //   expect(listener).toHaveBeenCalledWith({
     //     0: { currencyPair: { mode: "edit" } },
     //   });
-    // });    
+    // });
 
     // it("should publish 'cellModesModelChange' when the prop changes", () => {
     //   const { rerender } = render(<TestCase cellModesModel={{}} />);
@@ -1561,7 +1641,7 @@ describe("<DataGridPro /> - Cell editing", () => {
     //   expect(listener).toHaveBeenCalledWith({
     //     0: { currencyPair: { mode: "edit" } },
     //   });
-    // });    
+    // });
 
     it(`should not publish 'cellModesModelChange' when the model changes and cellModesModel is set`, () => {
       render(<TestCase cellModesModel={{}} />);
@@ -1569,7 +1649,7 @@ describe("<DataGridPro /> - Cell editing", () => {
       apiRef.current.subscribeEvent("cellModesModelChange", listener);
       const cell = getCell(0, 1);
       fireEvent.doubleClick(cell);
-      expect(listener.mock.calls.length).toEqual(0);
+      expect(listener).toHaveBeenCalledTimes(0);
     });
 
     it("should not mutate the cellModesModel prop if props of any column contains error=true", async () => {
@@ -1613,24 +1693,30 @@ describe("<DataGridPro /> - Cell editing", () => {
       const onCellModesModelChange = jest.fn();
       render(<TestCase onCellModesModelChange={onCellModesModelChange} />);
       expect(onCellModesModelChange).not.toHaveBeenCalled();
-      act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+      act(() =>
+        apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+      );
       const [modelChangeArgument] = onCellModesModelChange.mock.calls[0];
       expect(modelChangeArgument).toEqual({
         0: { currencyPair: { mode: "edit" } },
       });
-    });       
+    });
 
     it("should call onCellModesModelChange with mode=view when stopEditMode is called", () => {
       const onCellModesModelChange = jest.fn();
       render(<TestCase onCellModesModelChange={onCellModesModelChange} />);
-      act(() => apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" }));
+      act(() =>
+        apiRef.current.startCellEditMode({ id: 0, field: "currencyPair" })
+      );
       onCellModesModelChange.mockClear();
-      act(() => apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" }));
+      act(() =>
+        apiRef.current.stopCellEditMode({ id: 0, field: "currencyPair" })
+      );
       const [modelChangeArgument] = onCellModesModelChange.mock.calls[0];
       expect(modelChangeArgument).toEqual({
         0: { currencyPair: { mode: "view" } },
       });
-    });    
+    });
 
     it(`should not be called when changing the cellModesModel prop`, () => {
       const onCellModesModelChange = jest.fn();
@@ -1640,13 +1726,13 @@ describe("<DataGridPro /> - Cell editing", () => {
           onCellModesModelChange={onCellModesModelChange}
         />
       );
-      expect(onCellModesModelChange.mock.calls.length).toEqual(0);
+      expect(onCellModesModelChange).toHaveBeenCalledTimes(0);
       rerender(
         <TestCase
           cellModesModel={{ 0: { currencyPair: { mode: GridCellModes.Edit } } }}
         />
       );
-      expect(onCellModesModelChange.mock.calls.length).toEqual(0);
+      expect(onCellModesModelChange).toHaveBeenCalledTimes(0);
     });
   });
 });

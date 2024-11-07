@@ -5,6 +5,7 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 interface CustomToolbarProps {
   rowCount: number;
+  onReRender: () => void;
 }
 const CustomExportButton: React.FC = () => {
   const apiRef = useGridApiContext();
@@ -75,7 +76,7 @@ const CustomColumnsButton: React.FC = () => {
     </Tooltip>
   );
 };
-const CustomToolbar: React.FC<CustomToolbarProps> = ({ rowCount }) => {
+const CustomToolbar: React.FC<CustomToolbarProps> = ({ rowCount, onReRender }) => {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "space-between", p: 1 }}>
@@ -85,7 +86,7 @@ const CustomToolbar: React.FC<CustomToolbarProps> = ({ rowCount }) => {
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
           <CustomExportButton />
           <CustomColumnsButton />
-          <IconButton sx={{ ml: 1 }}>
+          <IconButton onClick={onReRender} sx={{ ml: 1 }}>
             <TuneIcon
               sx={{
                 "& path": {
